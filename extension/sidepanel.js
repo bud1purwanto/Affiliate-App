@@ -70,7 +70,10 @@ $('btn-qr').addEventListener('click', async () => {
   out.classList.remove('hidden');
   out.textContent = 'Membuat QR...';
   try {
-    const { dataUrl } = await api('/api/qrcode', { text });
+    // QR digenerate di sisi extension (vendor/qrcode.bundle.js), tanpa backend.
+    const dataUrl = window.QRCode?.toDataURL
+      ? await window.QRCode.toDataURL(text, { width: 320, margin: 1 })
+      : (await api('/api/qrcode', { text })).dataUrl;
     out.innerHTML = `<img src="${dataUrl}" />`;
   } catch (e) {
     out.textContent = '⚠ ' + e.message;

@@ -1,15 +1,13 @@
 import { json, readJson } from '../_shared/respond.js';
-import QRCode from 'qrcode';
 
-// QR sebagai SVG (pure JS) agar tidak butuh canvas/zlib di runtime Workers.
+// Di Cloudflare, QR digenerate di sisi browser (public/vendor/qrcode.bundle.js),
+// jadi endpoint ini tidak mengimpor paket npm apa pun (menghindari risiko bundling Workers).
+// Tetap disediakan sebagai fallback informatif untuk konsumen API non-browser.
 export async function onRequestPost({ request }) {
   const { text } = await readJson(request);
   if (!text) return json({ error: 'text wajib diisi.' }, 400);
-  try {
-    const svg = await QRCode.toString(text, { type: 'svg', margin: 1, width: 320 });
-    const dataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
-    return json({ dataUrl });
-  } catch (err) {
-    return json({ error: err.message }, 500);
-  }
+  return json({
+    clientSide: true,
+    message: 'QR digenerate di browser via vendor/qrcode.bundle.js. Endpoint server tidak diperlukan di Cloudflare.',
+  });
 }

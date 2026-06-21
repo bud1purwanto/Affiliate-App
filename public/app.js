@@ -67,12 +67,21 @@ $('btn-qr').addEventListener('click', async () => {
   out.classList.remove('hidden');
   out.innerHTML = 'Membuat QR...';
   try {
-    const { dataUrl } = await api('/api/qrcode', { text });
+    const dataUrl = await makeQr(text);
     out.innerHTML = `<img src="${dataUrl}" alt="QR" />`;
   } catch (e) {
     out.textContent = '⚠ ' + e.message;
   }
 });
+
+// QR digenerate di browser (vendor/qrcode.bundle.js). Fallback ke backend bila perlu.
+async function makeQr(text) {
+  if (window.QRCode?.toDataURL) {
+    return window.QRCode.toDataURL(text, { width: 320, margin: 1 });
+  }
+  const { dataUrl } = await api('/api/qrcode', { text });
+  return dataUrl;
+}
 
 // ---- Cari produk ----
 $('btn-search-product').addEventListener('click', async () => {

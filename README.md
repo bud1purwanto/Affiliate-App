@@ -16,7 +16,7 @@ Konten di-generate pakai **AI via OpenRouter** (bisa pilih model dinamis) dengan
 - **Generate UTAS otomatis** — pilih gaya (Edukasi / Storytelling / Soft Selling / Hard Selling / Review / Tips) & panjang (1-2, 3-5, 6-8 post).
 - **AI dinamis (OpenRouter)** — ganti model sesuka hati (Claude, GPT, Gemini, Llama, DeepSeek, dll).
 - **Shopee Affiliate API resmi** — cari produk (nama, harga, gambar, komisi) + generate **short link** dengan `sub_id` untuk tracking.
-- **QR Code** — buat QR dari link affiliate.
+- **QR Code** — buat QR dari link affiliate, digenerate **100% di browser** (`vendor/qrcode.bundle.js`) sehingga jalan di Cloudflare/Railway/lokal tanpa bergantung backend. Regenerasi bundle: `npm run build:qr`.
 - **Threads** — pilih topic, lalu:
   - via **Extension**: tombol "▶ Isi ke Threads" per post, atau **"▶ Kirim Semua ke Threads (1 utas)"** yang otomatis meng-_chain_ semua post (klik "Add to thread" sendiri) + isi topic.
   - via **Web App**: posting otomatis pakai Threads API resmi (opsional, butuh token Meta).
