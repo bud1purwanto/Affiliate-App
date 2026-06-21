@@ -93,3 +93,5 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .hist-item .hpreview { font-size: 12px; color: #cfcfcf; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .hist-item .hactions { display: flex; gap: 6px; margin-top: 2px; }
 .hist-item .hactions button { flex: 1; padding: 6px; font-size: 11px; }
+.sync-row { display: flex; gap: 8px; margin-top: 12px; }
+.sync-row input { flex: 1; }

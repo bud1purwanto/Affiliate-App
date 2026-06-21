@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
 
@@ -137,6 +138,35 @@ app.post('/api/test/shopee', async (req, res) => {
   } catch (err) {
     res.status(400).json({ ok: false, error: err.message });
   }
+});
+
+// ---- Sync riwayat (fallback file untuk Node/Railway; di Cloudflare pakai KV) ----
+const STORE_PATH = path.join(__dirname, '..', 'data', 'history-store.json');
+function readStore() {
+  try {
+    return JSON.parse(fs.readFileSync(STORE_PATH, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+function writeStore(obj) {
+  fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true });
+  fs.writeFileSync(STORE_PATH, JSON.stringify(obj));
+}
+
+app.get('/api/history', (req, res) => {
+  const code = req.query.code;
+  if (!code) return res.status(400).json({ error: 'Parameter code wajib.' });
+  res.json({ configured: true, list: readStore()[code] || [] });
+});
+
+app.put('/api/history', (req, res) => {
+  const { code, list } = req.body || {};
+  if (!code) return res.status(400).json({ error: 'code wajib.' });
+  const store = readStore();
+  store[code] = (list || []).slice(0, 200);
+  writeStore(store);
+  res.json({ ok: true, configured: true, count: store[code].length });
 });
 
 const PORT = process.env.PORT || 3000;

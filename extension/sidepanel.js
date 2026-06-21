@@ -311,5 +311,76 @@ $('btn-clear-history').addEventListener('click', async () => {
   }
 });
 
+function mergeHistory(a, b) {
+  const map = new Map();
+  [...a, ...b].forEach((h) => h && h.id && map.set(h.id, h));
+  return [...map.values()].sort((x, y) => y.ts - x.ts).slice(0, HISTORY_MAX);
+}
+
+// Export
+$('btn-export').addEventListener('click', async () => {
+  const list = await loadHistory();
+  if (!list.length) return alert('Belum ada riwayat.');
+  const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `threadsmil-riwayat-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// Import
+$('btn-import').addEventListener('click', () => $('import-file').click());
+$('import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      if (!Array.isArray(imported)) throw new Error('Format tidak valid');
+      await persistHistory(mergeHistory(await loadHistory(), imported));
+      renderHistory();
+      alert(`✅ ${imported.length} entri diimport.`);
+    } catch (err) {
+      alert('Gagal import: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// Sync via backend (KV di Cloudflare)
+const SYNC_CODE_KEY = 'threadsmil_sync_code';
+chrome.storage.local.get(SYNC_CODE_KEY).then(({ [SYNC_CODE_KEY]: c }) => {
+  if (c) $('sync-code').value = c;
+});
+$('btn-sync').addEventListener('click', async () => {
+  const code = $('sync-code').value.trim();
+  if (!code) return alert('Isi Kode Sync dulu (pakai kode sama di Web App / device lain).');
+  await chrome.storage.local.set({ [SYNC_CODE_KEY]: code });
+  const btn = $('btn-sync');
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${backendUrl}/api/history?code=${encodeURIComponent(code)}`);
+    const data = await res.json();
+    if (res.status === 501 || data.configured === false) throw new Error('Sync KV belum aktif di server.');
+    if (!res.ok) throw new Error(data.error || 'Gagal');
+    const merged = mergeHistory(await loadHistory(), data.list || []);
+    await persistHistory(merged);
+    await fetch(`${backendUrl}/api/history`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, list: merged }),
+    });
+    renderHistory();
+    alert(`✅ Tersinkron — ${merged.length} entri.`);
+  } catch (e) {
+    alert('⚠ ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 loadSettings().then(init);
 renderHistory();

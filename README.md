@@ -22,7 +22,9 @@ Konten di-generate pakai **AI via OpenRouter** (bisa pilih model dinamis) dengan
   - via **Web App**: posting otomatis pakai Threads API resmi (opsional, butuh token Meta).
 - **Editor per post** + penghitung karakter (batas 500 Threads) + Salin / Salin Semua.
 - **Setup Wizard** (`/setup.html`) — masukkan & **tes koneksi** semua credential (OpenRouter, Shopee, Threads) dari browser, tanpa edit file manual.
-- **Riwayat & Draft** — tiap hasil generate tersimpan otomatis; bisa simpan draft manual, **muat ulang** ke editor, atau hapus. Disimpan di sisi klien (`localStorage` di Web App, `chrome.storage` di Extension) — gratis, tanpa server/DB. Cocok untuk Cloudflare Pages.
+- **Riwayat & Draft** — tiap hasil generate tersimpan otomatis; bisa simpan draft manual, **muat ulang** ke editor, atau hapus. Disimpan di sisi klien (`localStorage` di Web App, `chrome.storage` di Extension) — gratis, tanpa server/DB.
+- **Export / Import** riwayat sebagai file JSON (digabung + dedup otomatis saat import).
+- **Sync lintas-device** (opsional) — pakai "Kode Sync" untuk menyimpan riwayat di server (Cloudflare KV / file di Railway), bisa diakses dari Web App & Extension di perangkat lain.
 
 ---
 
@@ -127,6 +129,16 @@ threadsmil/
 | POST | `/api/setup` | Simpan credential (runtime + `.env`) |
 | POST | `/api/test/openrouter` | Tes validitas key OpenRouter |
 | POST | `/api/test/shopee` | Tes koneksi Shopee API |
+| GET | `/api/history?code=` | Ambil riwayat tersinkron (KV/file) |
+| PUT | `/api/history` | Simpan riwayat tersinkron |
+
+### Mengaktifkan Sync KV di Cloudflare (opsional)
+
+1. Buat namespace: `npx wrangler kv namespace create THREADSMIL_KV`
+2. Tambahkan binding bernama **`THREADSMIL_KV`** — via `wrangler.toml` (lihat blok komentar) atau dashboard: **Settings → Functions → KV namespace bindings**.
+3. Redeploy. Lalu di halaman utama, isi **Kode Sync** (bebas, mis. `budi-2026`) dan klik **☁ Sync**. Pakai kode sama di device/extension lain untuk akses riwayat yang sama.
+
+> Tanpa binding KV, tombol Sync akan memberi tahu bahwa KV belum aktif — riwayat tetap jalan secara lokal.
 
 > **Keamanan setup:** jika `SETUP_TOKEN` diset di env, endpoint `/api/setup*` & `/api/test/*` butuh header `x-setup-token`. Disarankan set `SETUP_TOKEN` saat deploy publik agar tidak sembarang orang bisa mengubah credential.
 

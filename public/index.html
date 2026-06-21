@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🧵 Threadsmil — Generator UTAS Affiliate</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -94,7 +95,16 @@
     <section class="panel history-panel">
       <div class="result-head">
         <h2>🕘 Riwayat &amp; Draft</h2>
-        <button id="btn-clear-history" class="btn-secondary" style="flex:0;">🗑 Hapus Semua</button>
+        <div class="row" style="flex:0;flex-wrap:wrap;">
+          <button id="btn-export" class="btn-secondary" style="flex:0;">⬇ Export</button>
+          <button id="btn-import" class="btn-secondary" style="flex:0;">⬆ Import</button>
+          <input id="import-file" type="file" accept="application/json" style="display:none" />
+          <button id="btn-clear-history" class="btn-secondary" style="flex:0;">🗑 Hapus Semua</button>
+        </div>
+      </div>
+      <div class="sync-row">
+        <input id="sync-code" type="text" placeholder="Kode Sync (opsional, untuk akses lintas-device)" />
+        <button id="btn-sync" class="btn-secondary" style="flex:0;">☁ Sync</button>
       </div>
       <div id="history-list" class="history-list">
         <div class="empty">Belum ada riwayat. Setiap hasil generate & draft tersimpan otomatis di browser ini.</div>

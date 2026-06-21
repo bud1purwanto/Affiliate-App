@@ -297,6 +297,82 @@ $('btn-clear-history').addEventListener('click', () => {
   }
 });
 
+// ---- Gabung dua list riwayat (dedup by id, terbaru dulu, cap MAX) ----
+function mergeHistory(a, b) {
+  const map = new Map();
+  [...a, ...b].forEach((h) => h && h.id && map.set(h.id, h));
+  return [...map.values()].sort((x, y) => y.ts - x.ts).slice(0, HISTORY_MAX);
+}
+
+// ---- Export ke file JSON ----
+$('btn-export').addEventListener('click', () => {
+  const list = loadHistory();
+  if (!list.length) return alert('Belum ada riwayat untuk diexport.');
+  const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `threadsmil-riwayat-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ---- Import dari file JSON ----
+$('btn-import').addEventListener('click', () => $('import-file').click());
+$('import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      if (!Array.isArray(imported)) throw new Error('Format tidak valid');
+      persistHistory(mergeHistory(loadHistory(), imported));
+      renderHistory();
+      alert(`✅ ${imported.length} entri diimport (digabung & dedup).`);
+    } catch (err) {
+      alert('Gagal import: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// ---- Sync via server (KV di Cloudflare / file di Railway) ----
+const SYNC_CODE_KEY = 'threadsmil_sync_code';
+$('sync-code').value = localStorage.getItem(SYNC_CODE_KEY) || '';
+
+$('btn-sync').addEventListener('click', async () => {
+  const code = $('sync-code').value.trim();
+  if (!code) return alert('Isi Kode Sync dulu (bebas, mis. "budi-2026"). Pakai kode sama di device lain.');
+  localStorage.setItem(SYNC_CODE_KEY, code);
+  const btn = $('btn-sync');
+  btn.disabled = true;
+  btn.textContent = '⏳ Sync...';
+  try {
+    // tarik remote → gabung dengan lokal → push hasil gabungan
+    const res = await fetch(`/api/history?code=${encodeURIComponent(code)}`);
+    const data = await res.json();
+    if (res.status === 501 || data.configured === false) {
+      throw new Error('Sync KV belum aktif di server ini. Aktifkan binding THREADSMIL_KV di Cloudflare (lihat README).');
+    }
+    if (!res.ok) throw new Error(data.error || 'Gagal tarik data');
+    const merged = mergeHistory(loadHistory(), data.list || []);
+    persistHistory(merged);
+    await fetch('/api/history', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, list: merged }),
+    });
+    renderHistory();
+    alert(`✅ Tersinkron — total ${merged.length} entri.`);
+  } catch (e) {
+    alert('⚠ ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '☁ Sync';
+  }
+});
+
 // ---- Salin semua ----
 $('btn-copy-all').addEventListener('click', () => {
   navigator.clipboard.writeText(currentPosts.join('\n\n---\n\n'));
