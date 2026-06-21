@@ -127,6 +127,7 @@ $('btn-generate').addEventListener('click', async () => {
       disclosure: $('disclosure').checked,
     });
     currentPosts = result.posts;
+    postImages = [];
     renderPosts(result.posts);
     renderHooks(result.hooks || []);
     $('btn-fill-all').classList.toggle('hidden', result.posts.length === 0);
@@ -143,9 +144,21 @@ $('btn-generate').addEventListener('click', async () => {
   }
 });
 
+// Foto per-post: postImages[i] = array of { name, type, dataUrl }
+let postImages = [];
+
+function fileToData(file) {
+  return new Promise((resolve) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve({ name: file.name, type: file.type, dataUrl: fr.result });
+    fr.readAsDataURL(file);
+  });
+}
+
 function renderPosts(posts) {
   const wrap = $('posts');
   wrap.innerHTML = '';
+  if (postImages.length !== posts.length) postImages = posts.map((_, i) => postImages[i] || []);
   posts.forEach((text, i) => {
     const div = document.createElement('div');
     div.className = 'post';
@@ -154,25 +167,49 @@ function renderPosts(posts) {
         <span class="idx">Post ${i + 1}/${posts.length}</span>
         <div class="actions">
           <button class="copy">📋 Salin</button>
-          <button class="fill">▶ Isi ke Threads</button>
+          <button class="photo">📎 Foto</button>
+          <button class="fill">▶ Isi</button>
         </div>
       </div>
       <textarea>${text}</textarea>
+      <div class="photos"></div>
+      <input type="file" accept="image/*" multiple class="photo-input" style="display:none" />
       <div class="count"></div>`;
     const ta = div.querySelector('textarea');
     const count = div.querySelector('.count');
+    const photosBox = div.querySelector('.photos');
+    const photoInput = div.querySelector('.photo-input');
     const update = () => {
       count.textContent = `${ta.value.length} karakter`;
       count.classList.toggle('over', ta.value.length > THREADS_LIMIT);
       currentPosts[i] = ta.value;
     };
+    const renderThumbs = () => {
+      photosBox.innerHTML = '';
+      (postImages[i] || []).forEach((img, k) => {
+        const t = document.createElement('span');
+        t.className = 'thumb';
+        t.innerHTML = `<img src="${img.dataUrl}" /><span class="x">×</span>`;
+        t.querySelector('.x').addEventListener('click', () => {
+          postImages[i].splice(k, 1);
+          renderThumbs();
+        });
+        photosBox.appendChild(t);
+      });
+    };
     ta.addEventListener('input', update);
     update();
-    div.querySelector('.copy').addEventListener('click', () => {
-      navigator.clipboard.writeText(ta.value);
+    renderThumbs();
+    div.querySelector('.copy').addEventListener('click', () => navigator.clipboard.writeText(ta.value));
+    div.querySelector('.photo').addEventListener('click', () => photoInput.click());
+    photoInput.addEventListener('change', async (e) => {
+      const files = [...e.target.files];
+      for (const f of files) postImages[i].push(await fileToData(f));
+      renderThumbs();
+      e.target.value = '';
     });
     div.querySelector('.fill').addEventListener('click', () =>
-      fillToThreads(ta.value, i === 0 ? $('topic').value.trim() : '')
+      fillToThreads(ta.value, i === 0 ? $('topic').value.trim() : '', postImages[i])
     );
     wrap.appendChild(div);
   });
@@ -206,12 +243,16 @@ function renderHooks(hooks) {
 
 // ---- Kirim Semua ke Threads (chaining) ----
 $('btn-fill-all').addEventListener('click', () =>
-  sendToThreads('THREADSMIL_FILL_ALL', { posts: currentPosts, topic: $('topic').value.trim() })
+  sendToThreads('THREADSMIL_FILL_ALL', {
+    posts: currentPosts,
+    topic: $('topic').value.trim(),
+    media: currentPosts.map((_, i) => postImages[i] || []),
+  })
 );
 
-// ---- Kirim teks ke tab Threads aktif ----
-async function fillToThreads(text, topic) {
-  return sendToThreads('THREADSMIL_FILL', { text, topic });
+// ---- Kirim teks (+foto) ke tab Threads aktif ----
+async function fillToThreads(text, topic, images) {
+  return sendToThreads('THREADSMIL_FILL', { text, topic, images: images || [] });
 }
 
 // Helper umum: kirim pesan ke content script (inject kalau perlu).
@@ -318,6 +359,7 @@ function loadEntry(h) {
   $('shopee-url').dataset.affiliate = h.affiliate || '';
   $('shopee-url').dataset.productName = h.productName || '';
   currentPosts = [...h.posts];
+  postImages = [];
   renderPosts(currentPosts);
   $('btn-fill-all').classList.toggle('hidden', currentPosts.length === 0);
   window.scrollTo({ top: 0, behavior: 'smooth' });

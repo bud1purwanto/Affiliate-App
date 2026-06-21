@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
 
-import { generateUtas, RECOMMENDED_MODELS, testOpenRouter } from './services/ai.js';
+import { generateUtas, RECOMMENDED_MODELS, testOpenRouter, repurpose } from './services/ai.js';
 import { generateShortLink, searchProducts, hasShopeeCredentials, testShopee, getConversionReport } from './services/shopee.js';
 import { postThread, hasThreadsCredentials } from './services/threads.js';
 import { applyAndPersist, status as configStatus, checkSetupAuth, setupTokenRequired } from './services/config.js';
@@ -41,6 +41,17 @@ app.post('/api/generate', async (req, res) => {
     }
     const result = await generateUtas({ keyword, style, length, productName, productInfo, link, audience, model, disclosure });
     res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---- Repurpose UTAS -> caption IG/TikTok ----
+app.post('/api/repurpose', async (req, res) => {
+  try {
+    const { posts } = req.body || {};
+    if (!Array.isArray(posts) || !posts.length) return res.status(400).json({ error: 'posts wajib diisi.' });
+    res.json(await repurpose(req.body));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

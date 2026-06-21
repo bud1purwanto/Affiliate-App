@@ -119,3 +119,10 @@ label.checkbox input { width: auto; }
 .rtable .bar { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(124,58,237,.18); z-index: 0; }
 .rtable .sid { position: relative; z-index: 1; font-family: monospace; }
 .rtable .rcom { color: var(--accent-2); font-weight: 600; text-align: right; }
+
+/* ---- Repurpose ---- */
+.repurpose-bar { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
+.repurpose-bar .rtitle { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.repurpose-out { margin-top: 10px; }
+.repurpose-out textarea { width: 100%; min-height: 140px; background: var(--panel-2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px; font-size: 13px; line-height: 1.5; font-family: inherit; resize: vertical; }
+.repurpose-out button { margin-top: 8px; }

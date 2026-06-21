@@ -39,6 +39,11 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .post textarea { width: 100%; background: transparent; border: none; color: var(--text); font-size: 13px; resize: vertical; min-height: 64px; line-height: 1.45; font-family: inherit; }
 .post .count { font-size: 10px; color: var(--muted); text-align: right; }
 .post .count.over { color: #ef4444; }
+.photos { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.thumb { position: relative; display: inline-block; }
+.thumb img { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+.thumb .x { position: absolute; top: -6px; right: -6px; background: #ef4444; color: #fff; border-radius: 50%; width: 16px; height: 16px; font-size: 11px; line-height: 16px; text-align: center; cursor: pointer; }
+.post-head .photo { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
 .fill { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #fff; }
 .copy { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
 

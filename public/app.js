@@ -198,7 +198,40 @@ function renderPosts(posts) {
   $('btn-copy-all').disabled = posts.length === 0;
   $('btn-post-threads').disabled = posts.length === 0;
   $('btn-save-history').disabled = posts.length === 0;
+  $('repurpose-bar').classList.toggle('hidden', posts.length === 0);
 }
+
+// ---- Repurpose ke IG / TikTok ----
+async function doRepurpose(platform, btn) {
+  if (!currentPosts.length) return;
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '⏳...';
+  try {
+    const data = await api('/api/repurpose', {
+      posts: currentPosts,
+      platform,
+      productName: $('shopee-url').dataset.productName || '',
+      keyword: $('keyword').value.trim(),
+      link: $('shopee-url').dataset.affiliate || $('shopee-url').value.trim(),
+      model: $('model').value,
+    });
+    $('repurpose-text').value = data.caption;
+    $('repurpose-out').classList.remove('hidden');
+  } catch (e) {
+    alert('Gagal: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+}
+$('btn-ig').addEventListener('click', (e) => doRepurpose('instagram', e.target));
+$('btn-tiktok').addEventListener('click', (e) => doRepurpose('tiktok', e.target));
+$('btn-copy-repurpose').addEventListener('click', () => {
+  navigator.clipboard.writeText($('repurpose-text').value);
+  $('btn-copy-repurpose').textContent = '✓ Tersalin';
+  setTimeout(() => ($('btn-copy-repurpose').textContent = '📋 Salin Caption'), 1500);
+});
 
 // ---- Variasi hook (A/B): klik untuk pakai sebagai Post 1 ----
 function renderHooks(hooks) {

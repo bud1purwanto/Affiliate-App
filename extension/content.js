@@ -55,6 +55,31 @@
 
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // Lampirkan foto ke composer Threads (best-effort lewat input[type=file]).
+  // images: array of { name, type, dataUrl }
+  async function attachImages(images) {
+    if (!images || !images.length) return { attached: 0 };
+    const input =
+      document.querySelector('input[type="file"][accept*="image"]') ||
+      document.querySelector('input[type="file"][multiple]') ||
+      document.querySelector('input[type="file"]');
+    if (!input) return { attached: 0, error: 'input file foto tidak ditemukan' };
+    const dt = new DataTransfer();
+    for (const img of images) {
+      try {
+        const blob = await (await fetch(img.dataUrl)).blob();
+        dt.items.add(new File([blob], img.name || 'foto.jpg', { type: img.type || blob.type || 'image/jpeg' }));
+      } catch {
+        /* lewati gambar yang gagal */
+      }
+    }
+    if (!dt.files.length) return { attached: 0, error: 'gambar gagal diproses' };
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    await wait(500);
+    return { attached: dt.files.length };
+  }
+
   // Ambil semua composer yang terlihat, urut atas→bawah (urutan dokumen).
   function getComposers() {
     return Array.from(document.querySelectorAll('[contenteditable="true"], textarea')).filter((el) => {
@@ -77,7 +102,8 @@
   }
 
   // Isi rangkaian post sebagai satu utas (chaining via "Add to thread").
-  async function fillAll(posts, topic) {
+  // media: array sejajar posts, tiap elemen array gambar { name,type,dataUrl }
+  async function fillAll(posts, topic, media = []) {
     if (!Array.isArray(posts) || !posts.length) return { ok: false, error: 'Tidak ada post untuk dikirim.' };
     let composers = getComposers();
     if (!composers.length) {
@@ -85,6 +111,7 @@
     }
     insertText(composers[0], posts[0]);
     if (topic) fillTopic(topic);
+    if (media[0]) await attachImages(media[0]);
     await wait(400);
 
     for (let i = 1; i < posts.length; i++) {
@@ -103,6 +130,7 @@
       const target = composers[composers.length - 1];
       if (!target) return { ok: false, error: `Composer baru tidak muncul di post ${i + 1}.`, filled: i };
       insertText(target, posts[i]);
+      if (media[i]) await attachImages(media[i]);
       await wait(350);
     }
     return { ok: true, count: posts.length };
@@ -110,7 +138,7 @@
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === 'THREADSMIL_FILL_ALL') {
-      fillAll(msg.posts, msg.topic).then(sendResponse);
+      fillAll(msg.posts, msg.topic, msg.media || []).then(sendResponse);
       return true; // async
     }
     if (msg.type === 'THREADSMIL_FILL') {
@@ -125,8 +153,8 @@
       insertText(composer, msg.text || '');
       let topicFilled = false;
       if (msg.topic) topicFilled = fillTopic(msg.topic);
-      sendResponse({ ok: true, topicFilled });
-      return true;
+      attachImages(msg.images || []).then((r) => sendResponse({ ok: true, topicFilled, attached: r.attached }));
+      return true; // async (attachImages)
     }
     if (msg.type === 'THREADSMIL_PING') {
       sendResponse({ ok: true });

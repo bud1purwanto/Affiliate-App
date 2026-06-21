@@ -123,6 +123,67 @@ export async function generateUtas(opts, env) {
   }
 }
 
+function hashtagsFrom(text) {
+  const words = (text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter((w) => w.length > 2)
+    .slice(0, 3);
+  return [...words.map((w) => '#' + w), '#shopeefinds', '#racuntiktok', '#shopeehaul', '#rekomendasi'].join(' ');
+}
+
+export async function repurpose(opts, env) {
+  const { posts = [], platform = 'instagram', productName = '', keyword = '', link = '' } = opts;
+  const plat = platform === 'tiktok' ? 'TikTok' : 'Instagram';
+  const apiKey = env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    const caption = [posts[0] || productName || keyword, posts.slice(1, 3).join(' '), `Cek link ya 👉 ${link}`, hashtagsFrom(productName || keyword)]
+      .filter(Boolean)
+      .join('\n\n');
+    return { platform, caption, source: 'template' };
+  }
+
+  const prompt = `Ubah UTAS Threads berikut menjadi SATU caption ${plat} (bukan thread, satu blok teks).
+Sertakan hook kuat di awal, ringkas value/storytelling, ajakan cek link, dan 8-12 hashtag relevan di akhir.
+Bahasa Indonesia santai & relatable. ${plat === 'TikTok' ? 'Lebih singkat & catchy, cocok jadi deskripsi video TikTok.' : 'Cocok untuk caption Instagram.'}
+Link affiliate: ${link || '(link di bio)'}
+
+UTAS:
+${posts.join('\n---\n')}
+
+Balas HANYA JSON valid: {"caption": "..."}`;
+
+  try {
+    const res = await fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': env.OPENROUTER_REFERER || 'https://threadsmil.app',
+        'X-Title': env.OPENROUTER_TITLE || 'Threadsmil',
+      },
+      body: JSON.stringify({
+        model: opts.model || env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
+        temperature: 0.85,
+        messages: [
+          { role: 'system', content: 'Kamu copywriter sosial media yang membalas dalam JSON valid.' },
+          { role: 'user', content: prompt },
+        ],
+      }),
+    });
+    if (!res.ok) throw new Error(`OpenRouter ${res.status}`);
+    const data = await res.json();
+    const parsed = extractJson(data?.choices?.[0]?.message?.content || '');
+    if (!parsed?.caption) throw new Error('caption kosong');
+    return { platform, caption: parsed.caption, source: 'ai' };
+  } catch (err) {
+    const caption = [posts[0] || productName, `Cek link ya 👉 ${link}`, hashtagsFrom(productName || keyword)].filter(Boolean).join('\n\n');
+    return { platform, caption, source: 'template', warning: err.message };
+  }
+}
+
 export async function testOpenRouter(env) {
   const apiKey = env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error('OPENROUTER_API_KEY belum diset.');

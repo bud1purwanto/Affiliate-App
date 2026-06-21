@@ -18,6 +18,8 @@ Konten di-generate pakai **AI via OpenRouter** (bisa pilih model dinamis) dengan
 - **Variasi hook (A/B)** — tiap generate menghasilkan beberapa alternatif kalimat pembuka; klik untuk pakai sebagai Post 1.
 - **Disclosure otomatis** — opsi menambah tanda `#ad` / link affiliate di post (default aktif) agar sesuai aturan & akun aman.
 - **Tracking performa** (`/report.html`) — tarik laporan konversi Shopee, diagregasi per `sub_id`: total komisi, jumlah order, dan sub_id paling cuan.
+- **Repurpose IG/TikTok** — ubah UTAS jadi satu caption Instagram/TikTok + hashtag, sekali klik.
+- **Lampirkan foto sendiri** (Extension) — tombol 📎 Foto per post; foto ikut terpasang otomatis saat "Isi/Kirim ke Threads" (best-effort via composer threads.com).
 - **AI dinamis (OpenRouter)** — ganti model sesuka hati (Claude, GPT, Gemini, Llama, DeepSeek, dll).
 - **Shopee Affiliate API resmi** — cari produk (nama, harga, gambar, komisi) + generate **short link** dengan `sub_id` untuk tracking.
 - **QR Code** — buat QR dari link affiliate, digenerate **100% di browser** (`vendor/qrcode.bundle.js`) sehingga jalan di Cloudflare/Railway/lokal tanpa bergantung backend. Regenerasi bundle: `npm run build:qr`.
