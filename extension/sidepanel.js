@@ -128,6 +128,7 @@ $('btn-generate').addEventListener('click', async () => {
     currentPosts = result.posts;
     renderPosts(result.posts);
     $('btn-fill-all').classList.toggle('hidden', result.posts.length === 0);
+    await saveHistory(result.source === 'ai' ? 'ai' : 'template');
     if (result.warning) {
       $('warning').textContent = '⚠ ' + result.warning;
       $('warning').classList.remove('hidden');
@@ -209,4 +210,106 @@ async function sendToThreads(type, payload) {
   }
 }
 
+// ================= Riwayat & Draft (chrome.storage.local) =================
+const HISTORY_KEY = 'threadsmil_history';
+const HISTORY_MAX = 50;
+
+async function loadHistory() {
+  const { [HISTORY_KEY]: list } = await chrome.storage.local.get(HISTORY_KEY);
+  return Array.isArray(list) ? list : [];
+}
+async function persistHistory(list) {
+  await chrome.storage.local.set({ [HISTORY_KEY]: list.slice(0, HISTORY_MAX) });
+}
+
+function snapshot(tag) {
+  return {
+    id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    ts: Date.now(),
+    tag,
+    keyword: $('keyword').value.trim(),
+    topic: $('topic').value.trim(),
+    style: $('style').value,
+    length: $('length').value,
+    url: $('shopee-url').value.trim(),
+    affiliate: $('shopee-url').dataset.affiliate || '',
+    productName: $('shopee-url').dataset.productName || '',
+    posts: [...currentPosts],
+  };
+}
+
+async function saveHistory(tag) {
+  if (!currentPosts.length) return;
+  const list = await loadHistory();
+  list.unshift(snapshot(tag));
+  await persistHistory(list);
+  renderHistory();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+async function renderHistory() {
+  const wrap = $('history-list');
+  const list = await loadHistory();
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty">Belum ada riwayat. Hasil generate tersimpan otomatis.</div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  list.forEach((h) => {
+    const d = new Date(h.ts);
+    const tanggal = d.toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const tagLabel = h.tag === 'ai' ? 'AI' : h.tag === 'draft' ? 'Draft' : 'Template';
+    const div = document.createElement('div');
+    div.className = 'hist-item';
+    div.innerHTML = `
+      <div class="htop">
+        <span class="hkw">${escapeHtml(h.keyword || h.productName || '(tanpa judul)')}</span>
+        <span class="htag ${h.tag}">${tagLabel}</span>
+      </div>
+      <div class="hmeta">${tanggal} · ${h.posts.length} post · ${escapeHtml(h.style)}</div>
+      <div class="hpreview">${escapeHtml((h.posts[0] || '').slice(0, 120))}</div>
+      <div class="hactions">
+        <button class="copy load">📂 Muat</button>
+        <button class="copy del">🗑</button>
+      </div>`;
+    div.querySelector('.load').addEventListener('click', () => loadEntry(h));
+    div.querySelector('.del').addEventListener('click', () => deleteEntry(h.id));
+    wrap.appendChild(div);
+  });
+}
+
+function loadEntry(h) {
+  $('keyword').value = h.keyword || '';
+  $('topic').value = h.topic || '';
+  $('style').value = h.style || 'Storytelling';
+  $('length').value = h.length || 'Sedang (3-5 post)';
+  $('shopee-url').value = h.url || '';
+  $('shopee-url').dataset.affiliate = h.affiliate || '';
+  $('shopee-url').dataset.productName = h.productName || '';
+  currentPosts = [...h.posts];
+  renderPosts(currentPosts);
+  $('btn-fill-all').classList.toggle('hidden', currentPosts.length === 0);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function deleteEntry(id) {
+  await persistHistory((await loadHistory()).filter((h) => h.id !== id));
+  renderHistory();
+}
+
+$('btn-toggle-history').addEventListener('click', () => {
+  $('history-wrap').classList.toggle('hidden');
+  renderHistory();
+});
+$('btn-clear-history').addEventListener('click', async () => {
+  if (confirm('Hapus semua riwayat & draft?')) {
+    await chrome.storage.local.remove(HISTORY_KEY);
+    renderHistory();
+  }
+});
+
 loadSettings().then(init);
+renderHistory();

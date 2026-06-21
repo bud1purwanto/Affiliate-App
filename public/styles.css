@@ -79,3 +79,17 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .post textarea { width: 100%; background: transparent; border: none; color: var(--text); font-size: 14px; resize: vertical; min-height: 70px; line-height: 1.5; font-family: inherit; }
 .post .count { font-size: 11px; color: var(--muted); text-align: right; }
 .post .count.over { color: #ef4444; }
+
+/* ---- Riwayat & Draft ---- */
+.history-panel { margin-top: 16px; }
+.history-list { margin-top: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.hist-item { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.hist-item .htop { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.hist-item .htag { font-size: 11px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+.hist-item .htag.ai { color: #c4b5fd; border-color: var(--accent); }
+.hist-item .htag.draft { color: #fbbf24; border-color: var(--warn); }
+.hist-item .hkw { font-weight: 600; font-size: 13px; }
+.hist-item .hmeta { font-size: 11px; color: var(--muted); }
+.hist-item .hpreview { font-size: 12px; color: #cfcfcf; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.hist-item .hactions { display: flex; gap: 6px; margin-top: 2px; }
+.hist-item .hactions button { flex: 1; padding: 6px; font-size: 11px; }

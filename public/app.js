@@ -139,6 +139,7 @@ $('btn-generate').addEventListener('click', async () => {
     });
     currentPosts = result.posts;
     renderPosts(result.posts);
+    saveHistory(result.source === 'ai' ? 'ai' : 'template'); // auto-save tiap generate
     if (result.warning) {
       $('warning').textContent = '⚠ ' + result.warning;
       $('warning').classList.remove('hidden');
@@ -183,7 +184,118 @@ function renderPosts(posts) {
   });
   $('btn-copy-all').disabled = posts.length === 0;
   $('btn-post-threads').disabled = posts.length === 0;
+  $('btn-save-history').disabled = posts.length === 0;
 }
+
+// ================= Riwayat & Draft (localStorage) =================
+const HISTORY_KEY = 'threadsmil_history';
+const HISTORY_MAX = 50;
+
+function loadHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+function persistHistory(list) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, HISTORY_MAX)));
+}
+
+// Snapshot form + posts saat ini. tag: 'ai' | 'template' | 'draft'
+function currentSnapshot(tag) {
+  return {
+    id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    ts: Date.now(),
+    tag,
+    keyword: $('keyword').value.trim(),
+    topic: $('topic').value.trim(),
+    style: $('style').value,
+    length: $('length').value,
+    audience: $('audience').value.trim(),
+    url: $('shopee-url').value.trim(),
+    affiliate: $('shopee-url').dataset.affiliate || '',
+    productName: $('shopee-url').dataset.productName || '',
+    posts: [...currentPosts],
+  };
+}
+
+function saveHistory(tag) {
+  if (!currentPosts.length) return;
+  const list = loadHistory();
+  list.unshift(currentSnapshot(tag));
+  persistHistory(list);
+  renderHistory();
+}
+
+function renderHistory() {
+  const wrap = $('history-list');
+  const list = loadHistory();
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty">Belum ada riwayat. Setiap hasil generate & draft tersimpan otomatis di browser ini.</div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  list.forEach((h) => {
+    const d = new Date(h.ts);
+    const tanggal = d.toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const tagLabel = h.tag === 'ai' ? 'AI' : h.tag === 'draft' ? 'Draft' : 'Template';
+    const div = document.createElement('div');
+    div.className = 'hist-item';
+    div.innerHTML = `
+      <div class="htop">
+        <span class="hkw">${escapeHtml(h.keyword || h.productName || '(tanpa judul)')}</span>
+        <span class="htag ${h.tag}">${tagLabel}</span>
+      </div>
+      <div class="hmeta">${tanggal} · ${h.posts.length} post · ${escapeHtml(h.style)}${h.topic ? ' · #' + escapeHtml(h.topic) : ''}</div>
+      <div class="hpreview">${escapeHtml((h.posts[0] || '').slice(0, 160))}</div>
+      <div class="hactions">
+        <button class="btn-secondary load">📂 Muat</button>
+        <button class="btn-secondary del">🗑 Hapus</button>
+      </div>`;
+    div.querySelector('.load').addEventListener('click', () => loadEntry(h));
+    div.querySelector('.del').addEventListener('click', () => deleteEntry(h.id));
+    wrap.appendChild(div);
+  });
+}
+
+function loadEntry(h) {
+  $('keyword').value = h.keyword || '';
+  $('topic').value = h.topic || '';
+  $('style').value = h.style || 'Storytelling';
+  $('length').value = h.length || 'Sedang (3-5 post)';
+  $('audience').value = h.audience || '';
+  $('shopee-url').value = h.url || '';
+  $('shopee-url').dataset.affiliate = h.affiliate || '';
+  $('shopee-url').dataset.productName = h.productName || '';
+  currentPosts = [...h.posts];
+  renderPosts(currentPosts);
+  $('warning').classList.add('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteEntry(id) {
+  persistHistory(loadHistory().filter((h) => h.id !== id));
+  renderHistory();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+$('btn-save-history').addEventListener('click', () => {
+  saveHistory('draft');
+  $('btn-save-history').textContent = '✓ Tersimpan';
+  setTimeout(() => ($('btn-save-history').textContent = '💾 Simpan'), 1500);
+});
+
+$('btn-clear-history').addEventListener('click', () => {
+  if (!loadHistory().length) return;
+  if (confirm('Hapus semua riwayat & draft di browser ini?')) {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+  }
+});
 
 // ---- Salin semua ----
 $('btn-copy-all').addEventListener('click', () => {
@@ -211,3 +323,4 @@ $('btn-post-threads').addEventListener('click', async () => {
 });
 
 init();
+renderHistory();

@@ -41,3 +41,17 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .post .count.over { color: #ef4444; }
 .fill { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #fff; }
 .copy { background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+
+.hist-head { margin-top: 14px; }
+.hist-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.hist-item { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.hist-item .htop { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.hist-item .hkw { font-size: 12px; font-weight: 600; }
+.hist-item .htag { font-size: 9px; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+.hist-item .htag.ai { color: #c4b5fd; border-color: var(--accent); }
+.hist-item .htag.draft { color: #fbbf24; border-color: var(--warn); }
+.hist-item .hmeta { font-size: 10px; color: var(--muted); margin: 3px 0; }
+.hist-item .hpreview { font-size: 11px; color: #cfcfcf; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hist-item .hactions { display: flex; gap: 5px; margin-top: 6px; }
+.hist-item .hactions button { flex: 1; padding: 5px; font-size: 10px; }
+.empty { color: var(--muted); font-size: 11px; padding: 10px; text-align: center; }

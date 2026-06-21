@@ -79,6 +79,7 @@
         <div class="result-head">
           <h2>Hasil UTAS</h2>
           <div class="row">
+            <button id="btn-save-history" class="btn-secondary" disabled>💾 Simpan</button>
             <button id="btn-copy-all" class="btn-secondary" disabled>📋 Salin Semua</button>
             <button id="btn-post-threads" class="btn-primary" disabled>▶ Kirim ke Threads</button>
           </div>
@@ -89,6 +90,16 @@
         </div>
       </section>
     </main>
+
+    <section class="panel history-panel">
+      <div class="result-head">
+        <h2>🕘 Riwayat &amp; Draft</h2>
+        <button id="btn-clear-history" class="btn-secondary" style="flex:0;">🗑 Hapus Semua</button>
+      </div>
+      <div id="history-list" class="history-list">
+        <div class="empty">Belum ada riwayat. Setiap hasil generate & draft tersimpan otomatis di browser ini.</div>
+      </div>
+    </section>
   </div>
   <script src="vendor/qrcode.bundle.js"></script>
   <script src="app.js"></script>

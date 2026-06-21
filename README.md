@@ -22,6 +22,7 @@ Konten di-generate pakai **AI via OpenRouter** (bisa pilih model dinamis) dengan
   - via **Web App**: posting otomatis pakai Threads API resmi (opsional, butuh token Meta).
 - **Editor per post** + penghitung karakter (batas 500 Threads) + Salin / Salin Semua.
 - **Setup Wizard** (`/setup.html`) — masukkan & **tes koneksi** semua credential (OpenRouter, Shopee, Threads) dari browser, tanpa edit file manual.
+- **Riwayat & Draft** — tiap hasil generate tersimpan otomatis; bisa simpan draft manual, **muat ulang** ke editor, atau hapus. Disimpan di sisi klien (`localStorage` di Web App, `chrome.storage` di Extension) — gratis, tanpa server/DB. Cocok untuk Cloudflare Pages.
 
 ---
 
