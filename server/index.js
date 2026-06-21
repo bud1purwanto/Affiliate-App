@@ -5,9 +5,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
 
-import { generateUtas, RECOMMENDED_MODELS } from './services/ai.js';
-import { generateShortLink, searchProducts, hasShopeeCredentials } from './services/shopee.js';
+import { generateUtas, RECOMMENDED_MODELS, testOpenRouter } from './services/ai.js';
+import { generateShortLink, searchProducts, hasShopeeCredentials, testShopee } from './services/shopee.js';
 import { postThread, hasThreadsCredentials } from './services/threads.js';
+import { applyAndPersist, status as configStatus, checkSetupAuth, setupTokenRequired } from './services/config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -93,6 +94,46 @@ app.post('/api/threads/post', async (req, res) => {
   } catch (err) {
     const status = err.code === 'NO_THREADS_CREDENTIALS' ? 400 : 502;
     res.status(status).json({ error: err.message });
+  }
+});
+
+// ---- Setup wizard: status credential ----
+app.get('/api/setup/status', (_req, res) => {
+  res.json({
+    config: configStatus(),
+    tokenRequired: setupTokenRequired(),
+    integrations: {
+      ai: Boolean(process.env.OPENROUTER_API_KEY),
+      shopee: hasShopeeCredentials(),
+      threads: hasThreadsCredentials(),
+    },
+  });
+});
+
+// ---- Setup wizard: simpan credential ----
+app.post('/api/setup', (req, res) => {
+  if (!checkSetupAuth(req)) return res.status(401).json({ error: 'Setup token salah/diperlukan.' });
+  const { OPENROUTER_API_KEY, OPENROUTER_MODEL, SHOPEE_APP_ID, SHOPEE_APP_SECRET, THREADS_ACCESS_TOKEN, THREADS_USER_ID } = req.body || {};
+  const result = applyAndPersist({ OPENROUTER_API_KEY, OPENROUTER_MODEL, SHOPEE_APP_ID, SHOPEE_APP_SECRET, THREADS_ACCESS_TOKEN, THREADS_USER_ID });
+  res.json({ ok: true, ...result, config: configStatus() });
+});
+
+// ---- Test koneksi ----
+app.post('/api/test/openrouter', async (req, res) => {
+  if (!checkSetupAuth(req)) return res.status(401).json({ error: 'Setup token salah/diperlukan.' });
+  try {
+    res.json(await testOpenRouter());
+  } catch (err) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/test/shopee', async (req, res) => {
+  if (!checkSetupAuth(req)) return res.status(401).json({ error: 'Setup token salah/diperlukan.' });
+  try {
+    res.json(await testShopee());
+  } catch (err) {
+    res.status(400).json({ ok: false, error: err.message });
   }
 });
 

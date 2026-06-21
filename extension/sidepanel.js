@@ -124,6 +124,7 @@ $('btn-generate').addEventListener('click', async () => {
     });
     currentPosts = result.posts;
     renderPosts(result.posts);
+    $('btn-fill-all').classList.toggle('hidden', result.posts.length === 0);
     if (result.warning) {
       $('warning').textContent = '⚠ ' + result.warning;
       $('warning').classList.remove('hidden');
@@ -171,21 +172,34 @@ function renderPosts(posts) {
   });
 }
 
+// ---- Kirim Semua ke Threads (chaining) ----
+$('btn-fill-all').addEventListener('click', () =>
+  sendToThreads('THREADSMIL_FILL_ALL', { posts: currentPosts, topic: $('topic').value.trim() })
+);
+
 // ---- Kirim teks ke tab Threads aktif ----
 async function fillToThreads(text, topic) {
+  return sendToThreads('THREADSMIL_FILL', { text, topic });
+}
+
+// Helper umum: kirim pesan ke content script (inject kalau perlu).
+async function sendToThreads(type, payload) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !/threads\.(com|net)/.test(tab.url || '')) {
     return alert('Buka tab threads.com dulu, lalu klik "New thread" dan posisikan kursor di kotak tulis.');
   }
+  const send = () => chrome.tabs.sendMessage(tab.id, { type, ...payload });
   try {
-    const resp = await chrome.tabs.sendMessage(tab.id, { type: 'THREADSMIL_FILL', text, topic });
+    const resp = await send();
     if (!resp?.ok) alert(resp?.error || 'Gagal mengisi composer Threads.');
+    else if (type === 'THREADSMIL_FILL_ALL') alert(`✅ ${resp.count} post terisi sebagai 1 utas. Tinggal klik Post di Threads.`);
   } catch (e) {
     // Content script belum termuat — inject lalu coba lagi.
     try {
       await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-      const resp = await chrome.tabs.sendMessage(tab.id, { type: 'THREADSMIL_FILL', text, topic });
+      const resp = await send();
       if (!resp?.ok) alert(resp?.error || 'Gagal mengisi composer Threads.');
+      else if (type === 'THREADSMIL_FILL_ALL') alert(`✅ ${resp.count} post terisi sebagai 1 utas. Tinggal klik Post di Threads.`);
     } catch (e2) {
       alert('Tidak bisa terhubung ke halaman Threads: ' + e2.message);
     }

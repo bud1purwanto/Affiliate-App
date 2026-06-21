@@ -53,7 +53,66 @@
     return false;
   }
 
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  // Ambil semua composer yang terlihat, urut atas→bawah (urutan dokumen).
+  function getComposers() {
+    return Array.from(document.querySelectorAll('[contenteditable="true"], textarea')).filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    });
+  }
+
+  // Cari tombol "Add to thread" yang bisa diklik.
+  function findAddToThread() {
+    const els = Array.from(document.querySelectorAll('div[role="button"], span, button, [aria-label]'));
+    const matches = els.filter((el) => {
+      const label = (el.getAttribute('aria-label') || el.textContent || '').trim().toLowerCase();
+      return label === 'add to thread' || label.includes('add to thread') || label.includes('tambahkan ke utas');
+    });
+    if (!matches.length) return null;
+    // ambil yang paling bawah & paling spesifik (teks terpendek)
+    matches.sort((a, b) => (a.textContent || '').length - (b.textContent || '').length);
+    return matches[0].closest('[role="button"]') || matches[0];
+  }
+
+  // Isi rangkaian post sebagai satu utas (chaining via "Add to thread").
+  async function fillAll(posts, topic) {
+    if (!Array.isArray(posts) || !posts.length) return { ok: false, error: 'Tidak ada post untuk dikirim.' };
+    let composers = getComposers();
+    if (!composers.length) {
+      return { ok: false, error: 'Composer Threads tidak ditemukan. Buka "New thread" dulu.' };
+    }
+    insertText(composers[0], posts[0]);
+    if (topic) fillTopic(topic);
+    await wait(400);
+
+    for (let i = 1; i < posts.length; i++) {
+      const addBtn = findAddToThread();
+      if (!addBtn) {
+        return { ok: false, error: `Tombol "Add to thread" tidak ditemukan (berhenti di post ${i}/${posts.length}). Sisanya bisa diisi manual.`, filled: i };
+      }
+      const before = getComposers().length;
+      addBtn.click();
+      // tunggu composer baru muncul
+      for (let t = 0; t < 12; t++) {
+        await wait(250);
+        if (getComposers().length > before) break;
+      }
+      composers = getComposers();
+      const target = composers[composers.length - 1];
+      if (!target) return { ok: false, error: `Composer baru tidak muncul di post ${i + 1}.`, filled: i };
+      insertText(target, posts[i]);
+      await wait(350);
+    }
+    return { ok: true, count: posts.length };
+  }
+
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.type === 'THREADSMIL_FILL_ALL') {
+      fillAll(msg.posts, msg.topic).then(sendResponse);
+      return true; // async
+    }
     if (msg.type === 'THREADSMIL_FILL') {
       const composer = findComposer();
       if (!composer) {

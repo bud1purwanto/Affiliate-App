@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup — Threadsmil</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">⚙ Threadsmil <span class="sub">Setup Wizard</span></div>
+      <a href="/" style="color:#9a9a9a;text-decoration:none;font-size:13px">← Kembali ke App</a>
+    </header>
+
+    <main style="max-width:640px;margin:0 auto;">
+      <div id="token-box" class="panel hidden" style="margin-bottom:16px;">
+        <h2>🔒 Setup Token</h2>
+        <label>Token diperlukan untuk menyimpan credential</label>
+        <input id="setup-token" type="password" placeholder="SETUP_TOKEN" />
+      </div>
+
+      <!-- OpenRouter -->
+      <div class="panel" style="margin-bottom:16px;">
+        <h2>1. OpenRouter (AI) <span id="pill-ai" class="pill off">OFF</span></h2>
+        <p style="font-size:12px;color:#9a9a9a;margin:0 0 8px;">
+          Ambil API key di <a href="https://openrouter.ai/keys" target="_blank" style="color:#db2777">openrouter.ai/keys</a>.
+          Tanpa ini, app tetap jalan pakai template fallback.
+        </p>
+        <label>OPENROUTER_API_KEY</label>
+        <input id="OPENROUTER_API_KEY" type="password" placeholder="sk-or-v1-..." />
+        <label>Model default</label>
+        <select id="OPENROUTER_MODEL"></select>
+        <div class="row">
+          <button class="btn-secondary" data-test="openrouter">🔌 Tes Koneksi</button>
+        </div>
+        <div id="test-openrouter" class="out hidden"></div>
+      </div>
+
+      <!-- Shopee -->
+      <div class="panel" style="margin-bottom:16px;">
+        <h2>2. Shopee Affiliate API <span id="pill-shopee" class="pill off">OFF</span></h2>
+        <p style="font-size:12px;color:#9a9a9a;margin:0 0 8px;">
+          Daftar Open API di dashboard <a href="https://affiliate.shopee.co.id/" target="_blank" style="color:#db2777">Shopee Affiliate</a> → menu Open API.
+        </p>
+        <label>SHOPEE_APP_ID</label>
+        <input id="SHOPEE_APP_ID" type="text" placeholder="App ID" />
+        <label>SHOPEE_APP_SECRET</label>
+        <input id="SHOPEE_APP_SECRET" type="password" placeholder="App Secret" />
+        <div class="row">
+          <button class="btn-secondary" data-test="shopee">🔌 Tes Koneksi</button>
+        </div>
+        <div id="test-shopee" class="out hidden"></div>
+      </div>
+
+      <!-- Threads -->
+      <div class="panel" style="margin-bottom:16px;">
+        <h2>3. Threads API (opsional) <span id="pill-threads" class="pill off">OFF</span></h2>
+        <p style="font-size:12px;color:#9a9a9a;margin:0 0 8px;">
+          Hanya untuk auto-post dari Web App. Untuk posting praktis, gunakan Chrome Extension (tidak butuh ini).
+          Token dari <a href="https://developers.facebook.com/docs/threads" target="_blank" style="color:#db2777">Threads API Meta</a>.
+        </p>
+        <label>THREADS_ACCESS_TOKEN</label>
+        <input id="THREADS_ACCESS_TOKEN" type="password" placeholder="Access token" />
+        <label>THREADS_USER_ID</label>
+        <input id="THREADS_USER_ID" type="text" placeholder="User ID" />
+      </div>
+
+      <button id="btn-save" class="btn-primary full" style="margin-bottom:8px;">💾 Simpan Semua Credential</button>
+      <div id="save-out" class="out hidden"></div>
+      <p style="font-size:11px;color:#9a9a9a;text-align:center;margin-top:14px;">
+        Di Railway, filesystem bersifat ephemeral — credential aktif untuk sesi ini.
+        Untuk permanen, set juga di <b>Railway → Variables</b>.
+      </p>
+    </main>
+  </div>
+  <script src="setup.js"></script>
+</body>
+</html>

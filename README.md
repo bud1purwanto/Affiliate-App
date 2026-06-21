@@ -18,9 +18,10 @@ Konten di-generate pakai **AI via OpenRouter** (bisa pilih model dinamis) dengan
 - **Shopee Affiliate API resmi** — cari produk (nama, harga, gambar, komisi) + generate **short link** dengan `sub_id` untuk tracking.
 - **QR Code** — buat QR dari link affiliate.
 - **Threads** — pilih topic, lalu:
-  - via **Extension**: tombol "▶ Isi ke Threads" mengisi composer + topic langsung di threads.com.
+  - via **Extension**: tombol "▶ Isi ke Threads" per post, atau **"▶ Kirim Semua ke Threads (1 utas)"** yang otomatis meng-_chain_ semua post (klik "Add to thread" sendiri) + isi topic.
   - via **Web App**: posting otomatis pakai Threads API resmi (opsional, butuh token Meta).
 - **Editor per post** + penghitung karakter (batas 500 Threads) + Salin / Salin Semua.
+- **Setup Wizard** (`/setup.html`) — masukkan & **tes koneksi** semua credential (OpenRouter, Shopee, Threads) dari browser, tanpa edit file manual.
 
 ---
 
@@ -99,6 +100,12 @@ threadsmil/
 | POST | `/api/shopee/shortlink` | Buat short link affiliate |
 | POST | `/api/qrcode` | Buat QR Code (data URL) |
 | POST | `/api/threads/post` | Posting ke Threads (API resmi) |
+| GET | `/api/setup/status` | Status credential (secret di-mask) |
+| POST | `/api/setup` | Simpan credential (runtime + `.env`) |
+| POST | `/api/test/openrouter` | Tes validitas key OpenRouter |
+| POST | `/api/test/shopee` | Tes koneksi Shopee API |
+
+> **Keamanan setup:** jika `SETUP_TOKEN` diset di env, endpoint `/api/setup*` & `/api/test/*` butuh header `x-setup-token`. Disarankan set `SETUP_TOKEN` saat deploy publik agar tidak sembarang orang bisa mengubah credential.
 
 ---
 

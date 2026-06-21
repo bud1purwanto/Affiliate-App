@@ -109,6 +109,27 @@ export async function generateUtas(opts) {
   }
 }
 
+/** Tes validitas OPENROUTER_API_KEY. */
+export async function testOpenRouter() {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error('OPENROUTER_API_KEY belum diset.');
+  const res = await fetch('https://openrouter.ai/api/v1/key', {
+    headers: { Authorization: `Bearer ${apiKey}` },
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`Key tidak valid (${res.status}): ${t.slice(0, 120)}`);
+  }
+  const data = await res.json();
+  const usage = data?.data;
+  return {
+    ok: true,
+    label: usage?.label || 'OpenRouter key valid',
+    limit: usage?.limit ?? null,
+    usage: usage?.usage ?? null,
+  };
+}
+
 /** Daftar model rekomendasi untuk dropdown UI. */
 export const RECOMMENDED_MODELS = [
   { id: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5 Sonnet (terbaik)' },

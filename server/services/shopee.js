@@ -99,3 +99,10 @@ export async function searchProducts({ keyword, itemId, shopId, limit = 5, sortT
 export function hasShopeeCredentials() {
   return Boolean(process.env.SHOPEE_APP_ID && process.env.SHOPEE_APP_SECRET);
 }
+
+/** Tes koneksi Shopee Affiliate API (query ringan). */
+export async function testShopee() {
+  credentials(); // lempar error kalau credential kosong
+  const products = await searchProducts({ keyword: 'jaket', limit: 1 });
+  return { ok: true, sample: products[0]?.productName || null, count: products.length };
+}
