@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Threadsmil — Generator UTAS Affiliate",
+  "version": "1.0.0",
+  "description": "Generate UTAS/postingan affiliate Shopee otomatis (AI/OpenRouter) lalu isi langsung ke Threads + pilih topic.",
+  "permissions": ["sidePanel", "storage", "activeTab", "scripting", "clipboardWrite"],
+  "host_permissions": [
+    "https://www.threads.com/*",
+    "https://www.threads.net/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "https://*.up.railway.app/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "Buka Threadsmil" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.threads.com/*", "https://www.threads.net/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

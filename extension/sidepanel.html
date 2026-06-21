@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Threadsmil</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">🧵 Threadsmil</div>
+    <button id="btn-settings" class="icon" title="Pengaturan">⚙</button>
+  </header>
+
+  <div id="settings" class="settings hidden">
+    <label>Backend URL</label>
+    <input id="backend-url" type="text" placeholder="http://localhost:3000" />
+    <button id="btn-save-settings" class="btn-primary full">Simpan</button>
+    <div class="hint">Isi dengan URL server Threadsmil (lokal atau Railway).</div>
+  </div>
+
+  <main>
+    <label>Link / URL produk Shopee</label>
+    <input id="shopee-url" type="text" placeholder="https://shopee.co.id/..." />
+
+    <label>Sub ID / Keyword</label>
+    <input id="keyword" type="text" placeholder="jaket" />
+
+    <div class="row">
+      <button id="btn-shortlink" class="btn-secondary">🔗 Short Link</button>
+      <button id="btn-qr" class="btn-secondary">▦ QR</button>
+    </div>
+    <button id="btn-search-product" class="btn-secondary full">🔍 Cari Produk</button>
+    <div id="shortlink-out" class="out hidden"></div>
+    <div id="qr-out" class="qr hidden"></div>
+    <div id="product-out" class="products"></div>
+
+    <label>Community / Topic</label>
+    <input id="topic" type="text" placeholder="fashion, OOTD" />
+
+    <div class="grid2">
+      <div>
+        <label>Gaya</label>
+        <select id="style">
+          <option>Edukasi</option>
+          <option selected>Storytelling</option>
+          <option>Soft Selling</option>
+          <option>Hard Selling</option>
+          <option>Review</option>
+          <option>Tips</option>
+        </select>
+      </div>
+      <div>
+        <label>Panjang</label>
+        <select id="length">
+          <option>Pendek (1-2 post)</option>
+          <option selected>Sedang (3-5 post)</option>
+          <option>Panjang (6-8 post)</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Model AI</label>
+    <select id="model"></select>
+
+    <button id="btn-generate" class="btn-primary full">✨ Generate UTAS</button>
+
+    <div id="warning" class="warning hidden"></div>
+    <div id="posts" class="posts"></div>
+  </main>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
