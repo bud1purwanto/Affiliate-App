@@ -1,4 +1,5 @@
 const $ = (id) => document.getElementById(id);
+let writable = true;
 
 function headers() {
   const h = { 'Content-Type': 'application/json' };
@@ -27,6 +28,14 @@ async function loadStatus() {
   pill('pill-ai', data.integrations.ai);
   pill('pill-shopee', data.integrations.shopee);
   pill('pill-threads', data.integrations.threads);
+
+  // Cloudflare (writable:false): credential di-set lewat dashboard, bukan via web.
+  writable = data.writable !== false;
+  if (!writable) {
+    $('btn-save').classList.add('hidden');
+    const banner = $('cf-banner');
+    if (banner) banner.classList.remove('hidden');
+  }
 
   // tampilkan nilai yang sudah tersimpan (mask) sebagai placeholder
   const c = data.config || {};
@@ -72,16 +81,19 @@ document.querySelectorAll('[data-test]').forEach((btn) => {
     const out = $('test-' + which);
     out.classList.remove('hidden');
     out.textContent = 'Mengetes...';
-    // simpan dulu supaya test pakai nilai terbaru
-    await fetch('/api/setup', {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({
-        OPENROUTER_API_KEY: $('OPENROUTER_API_KEY').value.trim() || undefined,
-        SHOPEE_APP_ID: $('SHOPEE_APP_ID').value.trim() || undefined,
-        SHOPEE_APP_SECRET: $('SHOPEE_APP_SECRET').value.trim() || undefined,
-      }),
-    });
+    // Di server yang writable (Node/Railway), simpan dulu agar test pakai nilai terbaru.
+    // Di Cloudflare, test memakai credential yang sudah di-set di dashboard.
+    if (writable) {
+      await fetch('/api/setup', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({
+          OPENROUTER_API_KEY: $('OPENROUTER_API_KEY').value.trim() || undefined,
+          SHOPEE_APP_ID: $('SHOPEE_APP_ID').value.trim() || undefined,
+          SHOPEE_APP_SECRET: $('SHOPEE_APP_SECRET').value.trim() || undefined,
+        }),
+      });
+    }
     try {
       const res = await fetch('/api/test/' + which, { method: 'POST', headers: headers(), body: '{}' });
       const data = await res.json();

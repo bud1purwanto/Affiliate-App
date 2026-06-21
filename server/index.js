@@ -102,6 +102,8 @@ app.get('/api/setup/status', (_req, res) => {
   res.json({
     config: configStatus(),
     tokenRequired: setupTokenRequired(),
+    writable: true,
+    platform: 'node',
     integrations: {
       ai: Boolean(process.env.OPENROUTER_API_KEY),
       shopee: hasShopeeCredentials(),

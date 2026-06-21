@@ -38,6 +38,23 @@ Buka http://localhost:3000
 > Tanpa `OPENROUTER_API_KEY`, app tetap jalan memakai **template fallback**.
 > Tanpa kredensial Shopee, fitur cari produk & short link nonaktif (generate tetap bisa).
 
+### Deploy ke Cloudflare Pages (full, tanpa Railway)
+
+Backend sudah di-port ke **Cloudflare Pages Functions** (folder `functions/`), jadi seluruh app (frontend + API) bisa jalan di Cloudflare.
+
+1. Push repo ke GitHub (sudah).
+2. Cloudflare Dashboard → **Workers & Pages → Create → Pages → Connect to Git** → pilih repo ini.
+3. Build settings:
+   - **Build command:** *(kosongkan)*
+   - **Build output directory:** `public`
+   - Functions & `wrangler.toml` (termasuk flag `nodejs_compat`) terbaca otomatis.
+4. **Settings → Variables and Secrets** → isi: `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `SHOPEE_APP_ID`, `SHOPEE_APP_SECRET`, (opsional) `THREADS_ACCESS_TOKEN`, `THREADS_USER_ID`, `SETUP_TOKEN`.
+5. **Save & Deploy** → dapat URL `https://<project>.pages.dev`.
+
+> Di Cloudflare credential **di-set lewat dashboard** (Workers tanpa filesystem), jadi halaman `/setup.html` otomatis jadi mode **status & Tes Koneksi** saja. Signature Shopee memakai Web Crypto (sudah diverifikasi identik dengan Node).
+>
+> Untuk dev lokal Cloudflare: `npx wrangler pages dev public`.
+
 ### Deploy ke Railway
 
 1. Connect repo ini ke Railway (atau `railway up`).
@@ -83,10 +100,15 @@ threadsmil/
 │       └── threads.js      # Threads API resmi (opsional)
 ├── public/                 # Web App frontend
 │   ├── index.html · styles.css · app.js
+├── functions/              # Cloudflare Pages Functions (port dari server/)
+│   ├── _middleware.js      # CORS + preflight
+│   ├── _shared/            # ai · shopee (Web Crypto) · threads · templates · respond
+│   └── api/                # health, generate, qrcode, shopee/*, threads/*, setup*, test/*
 ├── extension/              # Chrome Extension (MV3, side panel)
 │   ├── manifest.json · background.js
 │   ├── content.js          # inject ke threads.com
 │   └── sidepanel.{html,css,js}
+├── wrangler.toml           # config Cloudflare Pages
 ├── railway.json · .env.example · package.json
 ```
 
