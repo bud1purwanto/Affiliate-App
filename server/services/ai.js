@@ -1,7 +1,21 @@
 // AI generator via OpenRouter (OpenAI-compatible) dengan fallback ke template.
-import { generateTemplate } from './templates.js';
+import { generateTemplate, generateHookVariations } from './templates.js';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
+const DISCLOSURE_NOTE =
+  'Disclosure: link di atas adalah link affiliate, aku bisa dapat komisi kecil tanpa menambah harga buat kamu 🙏 #ad';
+
+// Tambahkan disclosure ke post terakhir (atau jadi post baru bila kepanjangan).
+function applyDisclosure(posts, enabled) {
+  if (!enabled || !posts.length) return posts;
+  if (posts.some((p) => /#ad\b|link affiliate|dapat komisi/i.test(p))) return posts;
+  const copy = [...posts];
+  const last = copy[copy.length - 1];
+  if ((last + '\n\n' + DISCLOSURE_NOTE).length <= 500) copy[copy.length - 1] = last + '\n\n' + DISCLOSURE_NOTE;
+  else copy.push(DISCLOSURE_NOTE);
+  return copy;
+}
 
 function buildPrompt({ keyword, style, length, productName, productInfo, link, audience }) {
   const product = productName || keyword;
@@ -27,8 +41,10 @@ Aturan penulisan:
 - Gunakan emoji secukupnya, jangan berlebihan.
 - Jangan menulis nomor urut (1/4 dll), cukup isi post-nya saja.
 
+Selain itu, berikan 2 ALTERNATIF hook pembuka lain (selain post pertama) yang berbeda angle, untuk A/B testing.
+
 Balas HANYA dalam format JSON valid berikut, tanpa teks lain:
-{"posts": ["isi post 1", "isi post 2", "..."]}`;
+{"posts": ["isi post 1", "isi post 2", "..."], "hooks": ["alternatif hook 1", "alternatif hook 2"]}`;
 }
 
 function extractJson(text) {
@@ -56,7 +72,8 @@ export async function generateUtas(opts) {
 
   if (!apiKey) {
     return {
-      posts: generateTemplate(opts),
+      posts: applyDisclosure(generateTemplate(opts), opts.disclosure),
+      hooks: generateHookVariations(opts, 3),
       source: 'template',
       warning: 'OPENROUTER_API_KEY belum diset — pakai template fallback.',
     };
@@ -93,16 +110,22 @@ export async function generateUtas(opts) {
 
     if (!posts || posts.length === 0) {
       return {
-        posts: generateTemplate(opts),
+        posts: applyDisclosure(generateTemplate(opts), opts.disclosure),
+        hooks: generateHookVariations(opts, 3),
         source: 'template',
         warning: 'Respon AI tidak bisa diparse — pakai template fallback.',
       };
     }
 
-    return { posts, source: 'ai', model };
+    const hooks = Array.isArray(parsed?.hooks)
+      ? parsed.hooks.filter((h) => typeof h === 'string' && h.trim())
+      : generateHookVariations(opts, 2);
+
+    return { posts: applyDisclosure(posts, opts.disclosure), hooks, source: 'ai', model };
   } catch (err) {
     return {
-      posts: generateTemplate(opts),
+      posts: applyDisclosure(generateTemplate(opts), opts.disclosure),
+      hooks: generateHookVariations(opts, 3),
       source: 'template',
       warning: `AI gagal (${err.message}) — pakai template fallback.`,
     };

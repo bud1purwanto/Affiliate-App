@@ -14,6 +14,10 @@ Konten di-generate pakai **AI via OpenRouter** (bisa pilih model dinamis) dengan
 ## ✨ Fitur
 
 - **Generate UTAS otomatis** — pilih gaya (Edukasi / Storytelling / Soft Selling / Hard Selling / Review / Tips) & panjang (1-2, 3-5, 6-8 post).
+- **Riset produk cuan** — cari produk Shopee diurut Terlaris / Komisi tertinggi, langsung "Generate UTAS produk ini".
+- **Variasi hook (A/B)** — tiap generate menghasilkan beberapa alternatif kalimat pembuka; klik untuk pakai sebagai Post 1.
+- **Disclosure otomatis** — opsi menambah tanda `#ad` / link affiliate di post (default aktif) agar sesuai aturan & akun aman.
+- **Tracking performa** (`/report.html`) — tarik laporan konversi Shopee, diagregasi per `sub_id`: total komisi, jumlah order, dan sub_id paling cuan.
 - **AI dinamis (OpenRouter)** — ganti model sesuka hati (Claude, GPT, Gemini, Llama, DeepSeek, dll).
 - **Shopee Affiliate API resmi** — cari produk (nama, harga, gambar, komisi) + generate **short link** dengan `sub_id` untuk tracking.
 - **QR Code** — buat QR dari link affiliate, digenerate **100% di browser** (`vendor/qrcode.bundle.js`) sehingga jalan di Cloudflare/Railway/lokal tanpa bergantung backend. Regenerasi bundle: `npm run build:qr`.
@@ -123,6 +127,7 @@ threadsmil/
 | POST | `/api/generate` | Generate UTAS (AI/template) |
 | POST | `/api/shopee/products` | Cari produk Shopee |
 | POST | `/api/shopee/shortlink` | Buat short link affiliate |
+| POST | `/api/shopee/report` | Laporan konversi/komisi per sub_id |
 | POST | `/api/qrcode` | Buat QR Code (data URL) |
 | POST | `/api/threads/post` | Posting ke Threads (API resmi) |
 | GET | `/api/setup/status` | Status credential (secret di-mask) |

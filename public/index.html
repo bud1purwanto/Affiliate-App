@@ -13,6 +13,7 @@
       <div class="brand">🧵 Threadsmil <span class="sub">Generator UTAS Affiliate</span></div>
       <div style="display:flex;align-items:center;gap:12px;">
         <div id="status-pills" class="pills"></div>
+        <a href="/report.html" style="color:#9a9a9a;text-decoration:none;font-size:13px">📊 Performa</a>
         <a href="/setup.html" style="color:#9a9a9a;text-decoration:none;font-size:13px">⚙ Setup</a>
       </div>
     </header>
@@ -32,7 +33,14 @@
           <button id="btn-qr" class="btn-secondary">▦ Buat QR Code</button>
         </div>
 
-        <button id="btn-search-product" class="btn-secondary full">🔍 Cari Produk di Shopee</button>
+        <div class="grid2">
+          <select id="product-sort">
+            <option value="2">Terlaris</option>
+            <option value="3">Komisi tertinggi</option>
+            <option value="1">Relevan</option>
+          </select>
+          <button id="btn-search-product" class="btn-secondary">🔍 Cari Produk</button>
+        </div>
         <div id="shortlink-out" class="out hidden"></div>
         <div id="qr-out" class="qr hidden"></div>
         <div id="product-out" class="products"></div>
@@ -72,6 +80,8 @@
         <label>Model AI</label>
         <select id="model"></select>
 
+        <label class="checkbox"><input type="checkbox" id="disclosure" checked /> Tambah disclosure #ad (disarankan)</label>
+
         <button id="btn-generate" class="btn-primary full">✨ Generate UTAS</button>
       </section>
 
@@ -86,6 +96,7 @@
           </div>
         </div>
         <div id="warning" class="warning hidden"></div>
+        <div id="hooks" class="hooks hidden"></div>
         <div id="posts" class="posts">
           <div class="empty">Hasil UTAS akan muncul di sini setelah klik <b>Generate UTAS</b>.</div>
         </div>

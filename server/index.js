@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import QRCode from 'qrcode';
 
 import { generateUtas, RECOMMENDED_MODELS, testOpenRouter } from './services/ai.js';
-import { generateShortLink, searchProducts, hasShopeeCredentials, testShopee } from './services/shopee.js';
+import { generateShortLink, searchProducts, hasShopeeCredentials, testShopee, getConversionReport } from './services/shopee.js';
 import { postThread, hasThreadsCredentials } from './services/threads.js';
 import { applyAndPersist, status as configStatus, checkSetupAuth, setupTokenRequired } from './services/config.js';
 
@@ -35,11 +35,11 @@ app.get('/api/health', (_req, res) => {
 // ---- Generate UTAS ----
 app.post('/api/generate', async (req, res) => {
   try {
-    const { keyword, style, length, productName, productInfo, link, audience, model } = req.body || {};
+    const { keyword, style, length, productName, productInfo, link, audience, model, disclosure } = req.body || {};
     if (!keyword && !productName) {
       return res.status(400).json({ error: 'keyword atau productName wajib diisi.' });
     }
-    const result = await generateUtas({ keyword, style, length, productName, productInfo, link, audience, model });
+    const result = await generateUtas({ keyword, style, length, productName, productInfo, link, audience, model, disclosure });
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -68,6 +68,15 @@ app.post('/api/shopee/shortlink', async (req, res) => {
   } catch (err) {
     const status = err.code === 'NO_SHOPEE_CREDENTIALS' ? 400 : 502;
     res.status(status).json({ error: err.message });
+  }
+});
+
+// ---- Shopee: laporan performa (konversi per sub_id) ----
+app.post('/api/shopee/report', async (req, res) => {
+  try {
+    res.json(await getConversionReport(req.body || {}));
+  } catch (err) {
+    res.status(err.code === 'NO_SHOPEE_CREDENTIALS' ? 400 : 502).json({ error: err.message });
   }
 });
 

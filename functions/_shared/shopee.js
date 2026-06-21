@@ -56,6 +56,42 @@ export async function searchProducts({ keyword, itemId, shopId, limit = 5, sortT
   return data?.productOfferV2?.nodes || [];
 }
 
+function aggregateReport(nodes) {
+  const bySub = {};
+  let totalCommission = 0;
+  for (const n of nodes) {
+    const sub = n.subId1 || n.utmContent || '(tanpa sub_id)';
+    const c = Number(n.totalCommission || n.itemTotalCommission || 0);
+    totalCommission += c;
+    bySub[sub] = bySub[sub] || { subId: sub, orders: 0, commission: 0 };
+    bySub[sub].orders += 1;
+    bySub[sub].commission += c;
+  }
+  return { totalCommission, totalOrders: nodes.length, rows: Object.values(bySub).sort((a, b) => b.commission - a.commission) };
+}
+
+export async function getConversionReport({ days = 30 } = {}, env) {
+  const end = Math.floor(Date.now() / 1000);
+  const start = end - days * 86400;
+  const query = `query ($start: Int64, $end: Int64, $scrollId: String, $limit: Int32) {
+    conversionReport(purchaseTimeStart: $start, purchaseTimeEnd: $end, scrollId: $scrollId, limit: $limit) {
+      nodes { purchaseTime conversionId totalCommission subId1 subId2 subId3 subId4 subId5 utmContent }
+      pageInfo { hasNextPage scrollId limit }
+    }
+  }`;
+  let scrollId = null;
+  const all = [];
+  let pages = 0;
+  do {
+    const data = await callShopee(query, { start, end, scrollId, limit: 100 }, env);
+    const r = data?.conversionReport;
+    (r?.nodes || []).forEach((n) => all.push(n));
+    scrollId = r?.pageInfo?.hasNextPage ? r.pageInfo.scrollId : null;
+    pages += 1;
+  } while (scrollId && pages < 10);
+  return { ...aggregateReport(all), days };
+}
+
 export async function testShopee(env) {
   creds(env);
   const products = await searchProducts({ keyword: 'jaket', limit: 1 }, env);

@@ -95,3 +95,27 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .hist-item .hactions button { flex: 1; padding: 6px; font-size: 11px; }
 .sync-row { display: flex; gap: 8px; margin-top: 12px; }
 .sync-row input { flex: 1; }
+
+label.checkbox { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); margin-top: 12px; cursor: pointer; }
+label.checkbox input { width: auto; }
+
+/* ---- Hook A/B chooser ---- */
+.hooks { background: rgba(124,58,237,.08); border: 1px solid var(--accent); border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+.hooks .htitle { font-size: 12px; color: #c4b5fd; margin-bottom: 8px; }
+.hook-opt { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; margin-bottom: 6px; cursor: pointer; line-height: 1.4; }
+.hook-opt:hover { border-color: var(--accent); }
+.hook-opt.active { border-color: var(--accent); background: rgba(124,58,237,.18); }
+
+/* ---- Report performa ---- */
+.summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
+.stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+.stat .snum { font-size: 20px; font-weight: 700; color: #fff; }
+.stat .slabel { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.report-out { margin-top: 10px; }
+.rtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rtable th { text-align: left; color: var(--muted); font-size: 11px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.rtable td { padding: 8px; border-bottom: 1px solid var(--border); position: relative; }
+.rtable td:first-child { width: 60%; }
+.rtable .bar { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(124,58,237,.18); z-index: 0; }
+.rtable .sid { position: relative; z-index: 1; font-family: monospace; }
+.rtable .rcom { color: var(--accent-2); font-weight: 600; text-align: right; }

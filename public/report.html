@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Performa — Threadsmil</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">📊 Threadsmil <span class="sub">Performa Affiliate</span></div>
+      <a href="/" style="color:#9a9a9a;text-decoration:none;font-size:13px">← Kembali ke App</a>
+    </header>
+
+    <main style="max-width:760px;margin:0 auto;">
+      <div class="panel">
+        <div class="result-head">
+          <h2>Laporan Komisi per Sub ID</h2>
+          <div class="row" style="flex:0;">
+            <select id="days">
+              <option value="7">7 hari</option>
+              <option value="30" selected>30 hari</option>
+              <option value="90">90 hari</option>
+            </select>
+            <button id="btn-load" class="btn-primary" style="flex:0;">🔄 Muat</button>
+          </div>
+        </div>
+
+        <div id="summary" class="summary hidden">
+          <div class="stat"><div class="snum" id="s-commission">-</div><div class="slabel">Total Komisi</div></div>
+          <div class="stat"><div class="snum" id="s-orders">-</div><div class="slabel">Total Order/Konversi</div></div>
+          <div class="stat"><div class="snum" id="s-subs">-</div><div class="slabel">Sub ID Aktif</div></div>
+        </div>
+
+        <div id="out" class="report-out">
+          <div class="empty">Klik <b>Muat</b> untuk menarik data konversi dari Shopee Affiliate.<br/>
+          Butuh credential Shopee aktif (atur di <a href="/setup.html" style="color:#db2777">⚙ Setup</a>).</div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#9a9a9a;text-align:center;margin-top:14px;">
+        Data ditarik dari <b>conversionReport</b> Shopee Affiliate API & diagregasi per <code>sub_id</code>.
+        Pakai sub_id berbeda per konten untuk tahu mana yang paling cuan.
+      </p>
+    </main>
+  </div>
+  <script src="report.js"></script>
+</body>
+</html>

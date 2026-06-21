@@ -90,25 +90,36 @@ $('btn-search-product').addEventListener('click', async () => {
   const out = $('product-out');
   out.innerHTML = '<div class="empty">Mencari produk...</div>';
   try {
-    const { products } = await api('/api/shopee/products', { keyword, limit: 5 });
+    const sortType = Number($('product-sort').value) || 2;
+    const { products } = await api('/api/shopee/products', { keyword, limit: 8, sortType });
     if (!products.length) return (out.innerHTML = '<div class="empty">Produk tidak ditemukan.</div>');
     out.innerHTML = '';
     products.forEach((p) => {
       const div = document.createElement('div');
       div.className = 'product';
       const price = p.priceMin ? `Rp${Number(p.priceMin).toLocaleString('id-ID')}` : (p.price || '');
+      const sales = p.sales ? ` · ${Number(p.sales).toLocaleString('id-ID')} terjual` : '';
       div.innerHTML = `
         <img src="${p.imageUrl || ''}" onerror="this.style.display='none'" />
         <div class="meta">
           <div class="name">${p.productName || ''}</div>
-          <div class="price">${price} · komisi ${p.commissionRate || '-'}</div>
+          <div class="price">${price} · komisi ${p.commissionRate || '-'}${sales}</div>
+          <button class="pgen btn-secondary" style="margin-top:6px;padding:5px;font-size:11px;">✨ Generate UTAS produk ini</button>
         </div>`;
-      div.addEventListener('click', () => {
+      const fill = () => {
         $('shopee-url').value = p.offerLink || p.productLink || $('shopee-url').value;
         $('shopee-url').dataset.affiliate = p.offerLink || p.productLink || '';
         $('shopee-url').dataset.productName = p.productName || '';
+        $('keyword').value = $('keyword').value || (p.productName || '').slice(0, 30);
         out.querySelectorAll('.product').forEach((el) => (el.style.borderColor = ''));
         div.style.borderColor = '#7c3aed';
+      };
+      div.addEventListener('click', fill);
+      div.querySelector('.pgen').addEventListener('click', (e) => {
+        e.stopPropagation();
+        fill();
+        $('btn-generate').click();
+        document.querySelector('.result').scrollIntoView({ behavior: 'smooth' });
       });
       out.appendChild(div);
     });
@@ -136,9 +147,11 @@ $('btn-generate').addEventListener('click', async () => {
       length: $('length').value,
       audience: $('audience').value.trim(),
       model: $('model').value,
+      disclosure: $('disclosure').checked,
     });
     currentPosts = result.posts;
     renderPosts(result.posts);
+    renderHooks(result.hooks || []);
     saveHistory(result.source === 'ai' ? 'ai' : 'template'); // auto-save tiap generate
     if (result.warning) {
       $('warning').textContent = '⚠ ' + result.warning;
@@ -185,6 +198,31 @@ function renderPosts(posts) {
   $('btn-copy-all').disabled = posts.length === 0;
   $('btn-post-threads').disabled = posts.length === 0;
   $('btn-save-history').disabled = posts.length === 0;
+}
+
+// ---- Variasi hook (A/B): klik untuk pakai sebagai Post 1 ----
+function renderHooks(hooks) {
+  const wrap = $('hooks');
+  if (!hooks || !hooks.length || !currentPosts.length) {
+    wrap.classList.add('hidden');
+    wrap.innerHTML = '';
+    return;
+  }
+  const options = [currentPosts[0], ...hooks];
+  wrap.classList.remove('hidden');
+  wrap.innerHTML = '<div class="htitle">🎯 Variasi hook — klik untuk pakai sebagai Post 1:</div>';
+  options.forEach((h, i) => {
+    const el = document.createElement('div');
+    el.className = 'hook-opt' + (i === 0 ? ' active' : '');
+    el.textContent = h;
+    el.addEventListener('click', () => {
+      currentPosts[0] = h;
+      renderPosts(currentPosts);
+      wrap.querySelectorAll('.hook-opt').forEach((o) => o.classList.remove('active'));
+      el.classList.add('active');
+    });
+    wrap.appendChild(el);
+  });
 }
 
 // ================= Riwayat & Draft (localStorage) =================

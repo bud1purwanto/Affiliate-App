@@ -68,3 +68,20 @@ export function generateTemplate(opts) {
   posts.push(pick(CTAS, seed + 99).replace(/{kw}/g, kw).replace(/{link}/g, link));
   return posts.map((p) => p.trim());
 }
+
+export function generateHookVariations(opts, n = 3) {
+  const { keyword = 'produk ini', style = 'Storytelling', productName } = opts;
+  const kw = productName || keyword;
+  const pool = [...(HOOKS[style] || HOOKS.Storytelling), ...HOOKS.Storytelling, ...HOOKS.Tips, ...HOOKS.Edukasi];
+  let seed = (kw + style).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const seen = new Set();
+  const out = [];
+  for (let i = 0; i < pool.length && out.length < n; i++) {
+    const h = pool[(seed + i) % pool.length].replace(/{kw}/g, kw);
+    if (!seen.has(h)) {
+      seen.add(h);
+      out.push(h);
+    }
+  }
+  return out;
+}

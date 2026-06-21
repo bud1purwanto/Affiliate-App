@@ -124,9 +124,11 @@ $('btn-generate').addEventListener('click', async () => {
       style: $('style').value,
       length: $('length').value,
       model: $('model').value,
+      disclosure: $('disclosure').checked,
     });
     currentPosts = result.posts;
     renderPosts(result.posts);
+    renderHooks(result.hooks || []);
     $('btn-fill-all').classList.toggle('hidden', result.posts.length === 0);
     await saveHistory(result.source === 'ai' ? 'ai' : 'template');
     if (result.warning) {
@@ -173,6 +175,32 @@ function renderPosts(posts) {
       fillToThreads(ta.value, i === 0 ? $('topic').value.trim() : '')
     );
     wrap.appendChild(div);
+  });
+}
+
+// ---- Variasi hook (A/B) ----
+function renderHooks(hooks) {
+  const wrap = $('hooks');
+  if (!hooks || !hooks.length || !currentPosts.length) {
+    wrap.classList.add('hidden');
+    wrap.innerHTML = '';
+    return;
+  }
+  const options = [currentPosts[0], ...hooks];
+  wrap.classList.remove('hidden');
+  wrap.innerHTML = '<div class="htitle">🎯 Variasi hook (klik pakai sbg Post 1):</div>';
+  options.forEach((h, i) => {
+    const el = document.createElement('div');
+    el.className = 'hook-opt' + (i === 0 ? ' active' : '');
+    el.textContent = h;
+    el.addEventListener('click', () => {
+      currentPosts[0] = h;
+      renderPosts(currentPosts);
+      $('btn-fill-all').classList.toggle('hidden', currentPosts.length === 0);
+      wrap.querySelectorAll('.hook-opt').forEach((o) => o.classList.remove('active'));
+      el.classList.add('active');
+    });
+    wrap.appendChild(el);
   });
 }
 
