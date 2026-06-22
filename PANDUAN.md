@@ -170,6 +170,17 @@ Buka http://localhost:3000 — semua fitur Web App jalan. Untuk extension, set B
 
 ---
 
+## Sinkron laptop otomatis (auto-pull)
+Folder laptop tidak update sendiri saat kamu kerja lewat HP — perlu `git pull`. Agar otomatis:
+- **Klik dua kali** `scripts/auto-pull.bat` → menarik perubahan dari `main` tiap 60 detik
+  (atau `auto-pull.bat 30` untuk 30 detik). Biarkan jendelanya terbuka.
+- Versi PowerShell: `powershell -ExecutionPolicy Bypass -File scripts\auto-pull.ps1 -Interval 30`
+- Atau di VS Code: aktifkan setting `git.autofetch` lalu klik tombol Sync.
+
+> Jadikan laptop **read-only** (jangan edit file di laptop) supaya `git pull` tidak pernah konflik.
+
+---
+
 ## Troubleshooting singkat
 - **Pill Shopee OFF / "credential belum diset"** → cek `SHOPEE_APP_ID`/`SECRET` di Variables, lalu Redeploy.
 - **Generate selalu "template"** → `OPENROUTER_API_KEY` belum keisi atau saldo habis.
