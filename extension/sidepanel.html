@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Threadsmil</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header>
+    <div class="brand"><img src="icons/icon48.png" width="20" height="20" style="vertical-align:-4px;border-radius:5px;margin-right:4px;" />Threadsmil</div>
+    <button id="btn-settings" class="icon" title="Pengaturan">⚙</button>
+  </header>
+
+  <div id="settings" class="settings hidden">
+    <label>Backend URL</label>
+    <input id="backend-url" type="text" placeholder="http://localhost:3000" />
+    <button id="btn-save-settings" class="btn-primary full">Simpan</button>
+    <div class="hint">Isi dengan URL server Threadsmil (lokal atau Railway).</div>
+  </div>
+
+  <main>
+    <label>Link / URL produk Shopee</label>
+    <input id="shopee-url" type="text" placeholder="https://shopee.co.id/..." />
+
+    <label>Sub ID / Keyword</label>
+    <input id="keyword" type="text" placeholder="jaket" />
+
+    <div class="row">
+      <button id="btn-shortlink" class="btn-secondary">🔗 Short Link</button>
+      <button id="btn-qr" class="btn-secondary">▦ QR</button>
+    </div>
+    <button id="btn-search-product" class="btn-secondary full">🔍 Cari Produk</button>
+    <div id="shortlink-out" class="out hidden"></div>
+    <div id="qr-out" class="qr hidden"></div>
+    <div id="product-out" class="products"></div>
+
+    <label>Community / Topic</label>
+    <input id="topic" type="text" placeholder="fashion, OOTD" />
+
+    <div class="grid2">
+      <div>
+        <label>Gaya</label>
+        <select id="style">
+          <option>Edukasi</option>
+          <option selected>Storytelling</option>
+          <option>Soft Selling</option>
+          <option>Hard Selling</option>
+          <option>Review</option>
+          <option>Tips</option>
+        </select>
+      </div>
+      <div>
+        <label>Panjang</label>
+        <select id="length">
+          <option>Pendek (1-2 post)</option>
+          <option selected>Sedang (3-5 post)</option>
+          <option>Panjang (6-8 post)</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Model AI</label>
+    <select id="model"></select>
+
+    <label class="checkbox"><input type="checkbox" id="disclosure" checked /> Tambah disclosure #ad</label>
+
+    <button id="btn-generate" class="btn-primary full">✨ Generate UTAS</button>
+
+    <button id="btn-fill-all" class="btn-primary full hidden">▶ Kirim Semua ke Threads (1 utas)</button>
+
+    <div id="warning" class="warning hidden"></div>
+    <div id="hooks" class="hooks hidden"></div>
+    <div id="posts" class="posts"></div>
+
+    <div class="hist-head">
+      <button id="btn-toggle-history" class="icon" style="width:100%;text-align:left;">🕘 Riwayat &amp; Draft</button>
+    </div>
+    <div id="history-wrap" class="hidden">
+      <div class="row" style="margin-top:6px;">
+        <button id="btn-export" class="btn-secondary">⬇ Export</button>
+        <button id="btn-import" class="btn-secondary">⬆ Import</button>
+        <button id="btn-clear-history" class="btn-secondary">🗑</button>
+      </div>
+      <input id="import-file" type="file" accept="application/json" style="display:none" />
+      <div class="row" style="margin-top:6px;">
+        <input id="sync-code" type="text" placeholder="Kode Sync (opsional)" />
+        <button id="btn-sync" class="btn-secondary" style="flex:0;">☁</button>
+      </div>
+      <div id="history-list" class="hist-list"></div>
+    </div>
+  </main>
+
+  <script src="vendor/qrcode.bundle.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

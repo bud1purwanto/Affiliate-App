@@ -1,0 +1,23 @@
+{
+  "name": "threadsmil",
+  "version": "1.0.0",
+  "description": "Threadsmil — Generator UTAS / Postingan Affiliate otomatis. Terhubung ke Shopee Affiliate API & Threads, dengan AI (OpenRouter) + fallback template.",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "build:qr": "npx --yes esbuild scripts/qr-entry.js --bundle --format=iife --minify --outfile=public/vendor/qrcode.bundle.js && node -e \"require('fs').copyFileSync('public/vendor/qrcode.bundle.js','extension/vendor/qrcode.bundle.js')\"",
+    "build:icons": "node scripts/gen-icons.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "qrcode": "^1.5.4"
+  },
+  "license": "MIT"
+}

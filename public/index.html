@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🧵 Threadsmil — Generator UTAS Affiliate</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">🧵 Threadsmil <span class="sub">Generator UTAS Affiliate</span></div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="status-pills" class="pills"></div>
+        <a href="/report.html" style="color:#9a9a9a;text-decoration:none;font-size:13px">📊 Performa</a>
+        <a href="/setup.html" style="color:#9a9a9a;text-decoration:none;font-size:13px">⚙ Setup</a>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- ====== Panel kiri: input ====== -->
+      <section class="panel">
+        <h2>1. Produk Shopee</h2>
+        <label>Link / URL produk Shopee</label>
+        <input id="shopee-url" type="text" placeholder="https://shopee.co.id/... atau s.shopee.co.id/..." />
+
+        <label>Sub ID (tracking) / Keyword</label>
+        <input id="keyword" type="text" placeholder="contoh: jaket" />
+
+        <div class="row">
+          <button id="btn-shortlink" class="btn-secondary">🔗 Buat Short Link</button>
+          <button id="btn-qr" class="btn-secondary">▦ Buat QR Code</button>
+        </div>
+
+        <div class="grid2">
+          <select id="product-sort">
+            <option value="2">Terlaris</option>
+            <option value="3">Komisi tertinggi</option>
+            <option value="1">Relevan</option>
+          </select>
+          <button id="btn-search-product" class="btn-secondary">🔍 Cari Produk</button>
+        </div>
+        <div id="shortlink-out" class="out hidden"></div>
+        <div id="qr-out" class="qr hidden"></div>
+        <div id="product-out" class="products"></div>
+
+        <hr />
+
+        <h2>2. Topic Threads</h2>
+        <label>Community / Topic</label>
+        <input id="topic" type="text" placeholder="contoh: fashion, OOTD" />
+
+        <h2>3. Gaya UTAS</h2>
+        <div class="grid2">
+          <div>
+            <label>Gaya</label>
+            <select id="style">
+              <option>Edukasi</option>
+              <option selected>Storytelling</option>
+              <option>Soft Selling</option>
+              <option>Hard Selling</option>
+              <option>Review</option>
+              <option>Tips</option>
+            </select>
+          </div>
+          <div>
+            <label>Panjang</label>
+            <select id="length">
+              <option>Pendek (1-2 post)</option>
+              <option selected>Sedang (3-5 post)</option>
+              <option>Panjang (6-8 post)</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Target audiens (opsional)</label>
+        <input id="audience" type="text" placeholder="contoh: anak muda, pekerja kantoran" />
+
+        <label>Model AI</label>
+        <select id="model"></select>
+
+        <label class="checkbox"><input type="checkbox" id="disclosure" checked /> Tambah disclosure #ad (disarankan)</label>
+
+        <button id="btn-generate" class="btn-primary full">✨ Generate UTAS</button>
+      </section>
+
+      <!-- ====== Panel kanan: hasil ====== -->
+      <section class="panel result">
+        <div class="result-head">
+          <h2>Hasil UTAS</h2>
+          <div class="row">
+            <button id="btn-save-history" class="btn-secondary" disabled>💾 Simpan</button>
+            <button id="btn-copy-all" class="btn-secondary" disabled>📋 Salin Semua</button>
+            <button id="btn-post-threads" class="btn-primary" disabled>▶ Kirim ke Threads</button>
+          </div>
+        </div>
+        <div id="warning" class="warning hidden"></div>
+        <div id="hooks" class="hooks hidden"></div>
+        <div id="posts" class="posts">
+          <div class="empty">Hasil UTAS akan muncul di sini setelah klik <b>Generate UTAS</b>.</div>
+        </div>
+
+        <div id="repurpose-bar" class="repurpose-bar hidden">
+          <div class="rtitle">♻️ Ubah jadi caption platform lain:</div>
+          <div class="row">
+            <button id="btn-ig" class="btn-secondary">📸 Caption Instagram</button>
+            <button id="btn-tiktok" class="btn-secondary">🎵 Caption TikTok</button>
+          </div>
+          <div id="repurpose-out" class="repurpose-out hidden">
+            <textarea id="repurpose-text"></textarea>
+            <button id="btn-copy-repurpose" class="btn-secondary">📋 Salin Caption</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <section class="panel history-panel">
+      <div class="result-head">
+        <h2>🕘 Riwayat &amp; Draft</h2>
+        <div class="row" style="flex:0;flex-wrap:wrap;">
+          <button id="btn-export" class="btn-secondary" style="flex:0;">⬇ Export</button>
+          <button id="btn-import" class="btn-secondary" style="flex:0;">⬆ Import</button>
+          <input id="import-file" type="file" accept="application/json" style="display:none" />
+          <button id="btn-clear-history" class="btn-secondary" style="flex:0;">🗑 Hapus Semua</button>
+        </div>
+      </div>
+      <div class="sync-row">
+        <input id="sync-code" type="text" placeholder="Kode Sync (opsional, untuk akses lintas-device)" />
+        <button id="btn-sync" class="btn-secondary" style="flex:0;">☁ Sync</button>
+      </div>
+      <div id="history-list" class="history-list">
+        <div class="empty">Belum ada riwayat. Setiap hasil generate & draft tersimpan otomatis di browser ini.</div>
+      </div>
+    </section>
+  </div>
+  <script src="vendor/qrcode.bundle.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
