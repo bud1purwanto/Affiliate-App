@@ -74,12 +74,31 @@
         <input id="THREADS_USER_ID" type="text" placeholder="User ID" />
       </div>
 
-      <!-- Multi-akun Threads (disimpan di browser, untuk Auto post API) -->
+      <!-- Akun Threads server (THREADS_ACCOUNTS) — dipakai semua pengunjung web -->
       <div class="panel" style="margin-bottom:16px;">
-        <h2>4. Akun Threads (multi-akun) <span class="pill on" id="pill-accounts">0</span></h2>
+        <h2>4. Akun Threads — Server <span class="pill on" id="pill-srv-accounts">0</span></h2>
         <p style="font-size:12px;color:#9a9a9a;margin:0 0 8px;">
-          Tambah beberapa akun Threads untuk <b>Auto post API</b>. Saat posting kamu bisa pilih akun mana.
-          Disimpan di <b>browser ini</b> (tidak dikirim/diset di Cloudflare), jadi tetap bisa dipakai walau mode Cloudflare.
+          Akun yang kamu set di Cloudflare dan <b>bisa dipakai siapa pun yang buka web ini</b> (mis. istri tinggal pakai).
+          Token tersimpan aman di server (tidak ditampilkan di web).
+        </p>
+        <div id="srv-accounts-list" class="acc-list"></div>
+        <div class="out" style="font-size:11px;line-height:1.6;">
+          <b>Cara set (sekali saja):</b><br/>
+          1. Cloudflare → project → <b>Settings → Variables and Secrets</b> → tambah variabel
+          <b>THREADS_ACCOUNTS</b> (tipe Secret), isinya JSON:<br/>
+          <code style="display:block;white-space:pre-wrap;margin:6px 0;background:#000;padding:8px;border-radius:6px;">[{"label":"Budi","token":"TH_xxx","userId":"123"},
+ {"label":"Istri","token":"TH_yyy","userId":"456"}]</code>
+          2. <b>Retry deployment</b>. Setelah itu akun muncul di sini & di pemilih akun saat posting.<br/>
+          Token long-lived &amp; user ID tiap akun didapat dari Threads API Meta.
+        </div>
+      </div>
+
+      <!-- Multi-akun Threads (disimpan di browser ini saja) -->
+      <div class="panel" style="margin-bottom:16px;">
+        <h2>5. Akun Threads — Browser ini <span class="pill on" id="pill-accounts">0</span></h2>
+        <p style="font-size:12px;color:#9a9a9a;margin:0 0 8px;">
+          Opsional. Akun yang disimpan <b>hanya di browser ini</b> (tidak ikut untuk pengunjung lain).
+          Untuk dipakai bersama (istri di HP-nya), pakai akun <b>Server</b> di atas.
         </p>
         <div id="accounts-list" class="acc-list"></div>
         <label>Label akun (bebas)</label>

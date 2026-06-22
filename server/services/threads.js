@@ -5,6 +5,22 @@ import { enforceLimit } from './templates.js';
 
 const GRAPH = 'https://graph.threads.net/v1.0';
 
+// Akun yang dikonfigurasi di server via env THREADS_ACCOUNTS (JSON).
+export function getServerAccounts() {
+  const raw = process.env.THREADS_ACCOUNTS;
+  if (!raw) return [];
+  let arr;
+  try {
+    arr = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map((a, i) => ({ id: 'srv-' + i, label: a.label || 'Akun ' + (i + 1), token: a.token, userId: String(a.userId || '') }))
+    .filter((a) => a.token && a.userId);
+}
+
 export function hasThreadsCredentials() {
   return Boolean(process.env.THREADS_ACCESS_TOKEN && process.env.THREADS_USER_ID);
 }

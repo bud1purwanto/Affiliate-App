@@ -1,3 +1,20 @@
+// Akun yang dikonfigurasi di server via env THREADS_ACCOUNTS (JSON).
+// Format: [{"label":"Budi","token":"TH...","userId":"123"}, ...]
+export function getServerAccounts(env) {
+  const raw = env.THREADS_ACCOUNTS;
+  if (!raw) return [];
+  let arr;
+  try {
+    arr = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map((a, i) => ({ id: 'srv-' + i, label: a.label || 'Akun ' + (i + 1), token: a.token, userId: String(a.userId || '') }))
+    .filter((a) => a.token && a.userId);
+}
+
 // Threads API resmi (Meta) untuk Cloudflare Functions.
 import { enforceLimit } from './templates.js';
 

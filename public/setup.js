@@ -214,5 +214,26 @@ $('btn-acc-add').addEventListener('click', async () => {
   renderAccounts();
 });
 
+// Tampilkan akun server (THREADS_ACCOUNTS) — read only
+async function renderServerAccounts() {
+  try {
+    const { accounts } = await fetch('/api/threads/accounts').then((r) => r.json());
+    const wrap = $('srv-accounts-list');
+    $('pill-srv-accounts').textContent = (accounts || []).length;
+    if (!accounts || !accounts.length) {
+      wrap.innerHTML = '<div style="font-size:12px;color:#9a9a9a;padding:6px 0;">Belum ada akun server. Set THREADS_ACCOUNTS di Cloudflare (lihat di bawah).</div>';
+      return;
+    }
+    wrap.innerHTML = '';
+    accounts.forEach((a) => {
+      const div = document.createElement('div');
+      div.className = 'acc-item';
+      div.innerHTML = `<div><div class="acc-label">${escapeHtml(a.label)}</div><div class="acc-sub">ID ${escapeHtml(a.userId)}</div></div><span class="pill on" style="flex:0;">aktif</span>`;
+      wrap.appendChild(div);
+    });
+  } catch {}
+}
+
+renderServerAccounts();
 renderAccounts();
 loadStatus();

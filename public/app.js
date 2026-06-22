@@ -482,37 +482,47 @@ function loadAccounts() {
   }
 }
 
-// Opsi 1: Auto post via Threads API — pilih akun bila ada beberapa
-$('modal-autopost').addEventListener('click', () => {
+// Opsi 1: Auto post via Threads API — pilih akun (server + browser)
+$('modal-autopost').addEventListener('click', async () => {
   $('send-modal').classList.add('hidden');
-  const accounts = loadAccounts();
-  if (accounts.length) {
-    showAccountPicker(accounts);
-  } else if (config.threads) {
-    doAutoPost(null); // pakai akun default dari server (env)
-  } else {
-    alert(
-      'Belum ada akun Threads. Tambahkan akun di halaman ⚙ Setup (bagian "Akun Threads"), ' +
-      'atau set Threads API di server.\n\nDi HP tanpa akun, gunakan opsi "Buka di Threads".'
+  let server = { accounts: [], hasDefault: !!config.threads };
+  try {
+    server = await fetch('/api/threads/accounts').then((r) => r.json());
+  } catch {}
+  const items = [
+    ...(server.accounts || []).map((a) => ({ label: a.label, sub: 'ID ' + a.userId, kind: 'server', accountId: a.id })),
+    ...loadAccounts().map((a) => ({
+      label: a.label + ' (browser ini)',
+      sub: a.username ? '@' + a.username : 'ID ' + a.userId,
+      kind: 'local',
+      token: a.token,
+      userId: a.userId,
+    })),
+  ];
+  if (items.length === 0 && !server.hasDefault) {
+    return alert(
+      'Belum ada akun Threads. Set akun lewat ⚙ Setup (variabel THREADS_ACCOUNTS di Cloudflare).\n\n' +
+      'Di HP tanpa akun, gunakan opsi "Buka di Threads".'
     );
   }
+  if (items.length === 1 && !server.hasDefault) return doAutoPost(items[0]);
+  showAccountPicker(items, server.hasDefault);
 });
 
-function showAccountPicker(accounts) {
+function showAccountPicker(items, hasDefault) {
   const list = $('account-list');
   list.innerHTML = '';
-  accounts.forEach((a) => {
+  items.forEach((it) => {
     const btn = document.createElement('button');
     btn.className = 'acc-pick';
-    btn.innerHTML = `<div class="ap-label">${a.label}</div><div class="ap-sub">${a.username ? '@' + a.username : 'ID ' + a.userId}</div>`;
+    btn.innerHTML = `<div class="ap-label">${it.label}</div><div class="ap-sub">${it.sub}</div>`;
     btn.addEventListener('click', () => {
       $('account-modal').classList.add('hidden');
-      doAutoPost(a);
+      doAutoPost(it);
     });
     list.appendChild(btn);
   });
-  // opsi akun default server (kalau ada)
-  if (config.threads) {
+  if (hasDefault) {
     const btn = document.createElement('button');
     btn.className = 'acc-pick';
     btn.innerHTML = `<div class="ap-label">Akun default server</div><div class="ap-sub">dari Threads API server</div>`;
@@ -531,12 +541,13 @@ $('account-modal').addEventListener('click', (e) => {
 
 async function doAutoPost(account) {
   const topicTag = $('topic').value.trim();
-  const nama = account ? `"${account.label}"` : 'akun server';
+  const nama = account ? `"${account.label}"` : 'akun default server';
   if (!confirm(`Auto post ${currentPosts.length} post ke Threads (${nama}) sekarang?`)) return;
   showLoading(`Mengirim ${currentPosts.length} post ke Threads (${nama})...\nIni bisa 10-20 detik, jangan tutup tab ini.`);
   try {
     const body = { posts: currentPosts, topicTag };
-    if (account) {
+    if (account?.kind === 'server') body.accountId = account.accountId;
+    else if (account?.kind === 'local') {
       body.accessToken = account.token;
       body.userId = account.userId;
     }

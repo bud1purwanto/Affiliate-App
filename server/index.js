@@ -8,7 +8,7 @@ import QRCode from 'qrcode';
 
 import { generateUtas, RECOMMENDED_MODELS, testOpenRouter, repurpose } from './services/ai.js';
 import { generateShortLink, searchProducts, hasShopeeCredentials, testShopee, getConversionReport } from './services/shopee.js';
-import { postThread, hasThreadsCredentials, verifyAccount } from './services/threads.js';
+import { postThread, hasThreadsCredentials, verifyAccount, getServerAccounts } from './services/threads.js';
 import { applyAndPersist, status as configStatus, checkSetupAuth, setupTokenRequired } from './services/config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -103,6 +103,12 @@ app.post('/api/qrcode', async (req, res) => {
   }
 });
 
+// ---- Threads: daftar akun server (label & userId, tanpa token) ----
+app.get('/api/threads/accounts', (_req, res) => {
+  const accounts = getServerAccounts().map((a) => ({ id: a.id, label: a.label, userId: a.userId }));
+  res.json({ accounts, hasDefault: hasThreadsCredentials() });
+});
+
 // ---- Threads: verifikasi akun (multi-akun) ----
 app.post('/api/threads/verify', async (req, res) => {
   try {
@@ -116,11 +122,18 @@ app.post('/api/threads/verify', async (req, res) => {
 // ---- Threads: posting via API resmi (opsional) ----
 app.post('/api/threads/post', async (req, res) => {
   try {
-    const { posts, topicTag, accessToken, userId } = req.body || {};
+    const { posts, topicTag, accountId, accessToken, userId } = req.body || {};
     if (!Array.isArray(posts) || posts.length === 0) {
       return res.status(400).json({ error: 'posts (array) wajib diisi.' });
     }
-    const override = accessToken && userId ? { accessToken, userId } : undefined;
+    let override;
+    if (accountId) {
+      const acc = getServerAccounts().find((a) => a.id === accountId);
+      if (!acc) return res.status(400).json({ error: 'Akun server tidak ditemukan.' });
+      override = { accessToken: acc.token, userId: acc.userId };
+    } else if (accessToken && userId) {
+      override = { accessToken, userId };
+    }
     const ids = await postThread(posts, topicTag, override);
     res.json({ ids, count: ids.length });
   } catch (err) {
