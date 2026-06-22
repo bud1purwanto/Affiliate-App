@@ -45,20 +45,40 @@ async function publishContainer(creationId) {
  * @param {string} [topicTag] - topic untuk post pertama
  * @returns {Promise<string[]>} array id post yang dipublish
  */
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function withRetry(fn, tries = 1) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (i < tries - 1) await wait(2000 * (i + 1));
+    }
+  }
+  throw lastErr;
+}
+
 export async function postThread(posts, topicTag) {
   const ids = [];
   let replyToId = null;
   for (let i = 0; i < posts.length; i++) {
-    const containerId = await createContainer({
-      text: posts[i],
-      replyToId,
-      topicTag: i === 0 ? topicTag : undefined,
-    });
-    const publishedId = await publishContainer(containerId);
-    ids.push(publishedId);
-    replyToId = publishedId;
-    // Threads butuh jeda singkat antar publish
-    if (i < posts.length - 1) await new Promise((r) => setTimeout(r, 1200));
+    const isReply = i > 0;
+    try {
+      const containerId = await withRetry(
+        () => createContainer({ text: posts[i], replyToId, topicTag: isReply ? undefined : topicTag }),
+        isReply ? 3 : 1
+      );
+      const publishedId = await withRetry(() => publishContainer(containerId), isReply ? 3 : 1);
+      ids.push(publishedId);
+      replyToId = publishedId;
+    } catch (e) {
+      const err = new Error(`Gagal di post ${i + 1}/${posts.length}: ${e.message}. Berhasil terkirim ${ids.length} post.`);
+      err.posted = ids.length;
+      throw err;
+    }
+    if (i < posts.length - 1) await wait(3000);
   }
   return ids;
 }
