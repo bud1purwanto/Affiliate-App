@@ -2,6 +2,10 @@
 // Bertugas mengisi composer Threads dengan teks UTAS dan (best-effort) topic.
 
 (function () {
+  // Cegah dobel-inject: kalau script sudah pernah dimuat di tab ini, berhenti.
+  if (window.__threadsmilContentLoaded) return;
+  window.__threadsmilContentLoaded = true;
+
   // Cari elemen composer contenteditable yang sedang aktif/terlihat.
   function findComposer() {
     const candidates = Array.from(
@@ -17,22 +21,24 @@
   }
 
   // Sisipkan teks ke elemen (contenteditable atau textarea) secara natural.
+  // Pilih SEMUA isi dulu lalu ganti, supaya tidak menggandakan teks.
   function insertText(el, text) {
     el.focus();
     if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
-      const setter = Object.getOwnPropertyDescriptor(
-        window.HTMLTextAreaElement.prototype,
-        'value'
-      ).set;
+      const proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
       setter.call(el, text);
       el.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
-      // contenteditable: pakai execCommand insertText agar React menangkap perubahan
+      // contenteditable: seleksi seluruh isi, lalu execCommand insertText
+      // (execCommand sudah memicu event 'input' asli — JANGAN dispatch lagi
+      // agar editor tidak menyisipkan teks dua kali).
       const sel = window.getSelection();
-      sel.selectAllChildren(el);
-      sel.deleteFromDocument();
+      sel.removeAllRanges();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      sel.addRange(range);
       document.execCommand('insertText', false, text);
-      el.dispatchEvent(new InputEvent('input', { bubbles: true, data: text }));
     }
   }
 
@@ -101,10 +107,22 @@
     return matches[0].closest('[role="button"]') || matches[0];
   }
 
+  let busy = false; // cegah proses isi-utas berjalan tumpang-tindih
+
   // Isi rangkaian post sebagai satu utas (chaining via "Add to thread").
   // media: array sejajar posts, tiap elemen array gambar { name,type,dataUrl }
   async function fillAll(posts, topic, media = []) {
+    if (busy) return { ok: false, error: 'Masih memproses utas sebelumnya, tunggu sebentar.' };
     if (!Array.isArray(posts) || !posts.length) return { ok: false, error: 'Tidak ada post untuk dikirim.' };
+    busy = true;
+    try {
+      return await fillAllInner(posts, topic, media);
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function fillAllInner(posts, topic, media = []) {
     let composers = getComposers();
     if (!composers.length) {
       return { ok: false, error: 'Composer Threads tidak ditemukan. Buka "New thread" dulu.' };
