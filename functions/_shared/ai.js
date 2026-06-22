@@ -17,6 +17,7 @@ function applyDisclosure(posts, enabled) {
 }
 
 export const RECOMMENDED_MODELS = [
+  { id: 'openrouter/auto', label: 'Auto — pilih model terbaik otomatis' },
   { id: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5 Sonnet (terbaik)' },
   { id: 'openai/gpt-4o-mini', label: 'GPT-4o mini (cepat & murah)' },
   { id: 'google/gemini-flash-1.5', label: 'Gemini 1.5 Flash (cepat)' },
