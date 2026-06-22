@@ -35,6 +35,15 @@ async function loadStatus() {
     $('btn-save').classList.add('hidden');
     const banner = $('cf-banner');
     if (banner) banner.classList.remove('hidden');
+    // Nonaktifkan kolom input — di Cloudflare credential diisi lewat dashboard.
+    ['OPENROUTER_API_KEY', 'OPENROUTER_MODEL', 'SHOPEE_APP_ID', 'SHOPEE_APP_SECRET', 'THREADS_ACCESS_TOKEN', 'THREADS_USER_ID'].forEach((id) => {
+      const el = $(id);
+      if (el) {
+        el.disabled = true;
+        el.title = 'Set lewat Cloudflare Dashboard → Settings → Variables and Secrets';
+        if (el.tagName === 'INPUT') el.placeholder = '→ set di Cloudflare Dashboard (Variables)';
+      }
+    });
   }
 
   // tampilkan nilai yang sudah tersimpan (mask) sebagai placeholder
