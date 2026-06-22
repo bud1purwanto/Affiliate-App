@@ -207,6 +207,7 @@ async function doRepurpose(platform, btn) {
   const label = btn.textContent;
   btn.disabled = true;
   btn.textContent = '⏳...';
+  showLoading('Membuat caption ' + (platform === 'tiktok' ? 'TikTok' : 'Instagram') + '...');
   try {
     const data = await api('/api/repurpose', {
       posts: currentPosts,
@@ -221,6 +222,7 @@ async function doRepurpose(platform, btn) {
   } catch (e) {
     alert('Gagal: ' + e.message);
   } finally {
+    hideLoading();
     btn.disabled = false;
     btn.textContent = label;
   }
@@ -451,6 +453,15 @@ $('btn-copy-all').addEventListener('click', () => {
   setTimeout(() => ($('btn-copy-all').textContent = '📋 Salin Semua'), 1500);
 });
 
+// ---- Loading overlay ----
+function showLoading(msg) {
+  $('loading-text').textContent = msg || 'Memproses...';
+  $('loading-overlay').classList.remove('hidden');
+}
+function hideLoading() {
+  $('loading-overlay').classList.add('hidden');
+}
+
 // ---- Kirim ke Threads: tampilkan popup pilihan ----
 $('btn-post-threads').addEventListener('click', () => {
   if (!currentPosts.length) return;
@@ -472,11 +483,14 @@ $('modal-autopost').addEventListener('click', async () => {
   }
   const topicTag = $('topic').value.trim();
   if (!confirm(`Auto post ${currentPosts.length} post ke Threads sekarang?`)) return;
+  showLoading(`Mengirim ${currentPosts.length} post ke Threads...\nIni bisa 10-20 detik, jangan tutup tab ini.`);
   try {
     const { count } = await api('/api/threads/post', { posts: currentPosts, topicTag });
     alert(`✅ Berhasil posting ${count} post ke Threads!`);
   } catch (e) {
     alert('Gagal posting: ' + e.message);
+  } finally {
+    hideLoading();
   }
 });
 

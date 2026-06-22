@@ -252,14 +252,27 @@ $('send-modal').addEventListener('click', (e) => {
 });
 
 // Opsi 1: Auto post (isi otomatis via content script) — fitur lama
-$('modal-autopost').addEventListener('click', () => {
+$('modal-autopost').addEventListener('click', async () => {
   $('send-modal').classList.add('hidden');
-  sendToThreads('THREADSMIL_FILL_ALL', {
-    posts: currentPosts,
-    topic: $('topic').value.trim(),
-    media: currentPosts.map((_, i) => postImages[i] || []),
-  });
+  showLoading('Mengisi ' + currentPosts.length + ' post ke Threads...\nJangan tutup/pindah tab.');
+  try {
+    await sendToThreads('THREADSMIL_FILL_ALL', {
+      posts: currentPosts,
+      topic: $('topic').value.trim(),
+      media: currentPosts.map((_, i) => postImages[i] || []),
+    });
+  } finally {
+    hideLoading();
+  }
 });
+
+function showLoading(msg) {
+  $('loading-text').textContent = msg || 'Memproses...';
+  $('loading-overlay').classList.remove('hidden');
+}
+function hideLoading() {
+  $('loading-overlay').classList.add('hidden');
+}
 
 // Opsi 2: Buka di Threads (intent) — Post 1 terisi, sisanya disalin
 $('modal-intent').addEventListener('click', () => {
