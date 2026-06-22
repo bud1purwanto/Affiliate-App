@@ -1,5 +1,5 @@
 // AI generator via OpenRouter untuk Cloudflare Functions (env diteruskan via argumen).
-import { generateTemplate, generateHookVariations } from './templates.js';
+import { generateTemplate, generateHookVariations, enforceLimit } from './templates.js';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -41,7 +41,7 @@ Link affiliate: ${link || '(akan ditambahkan otomatis)'}${info}
 Aturan penulisan:
 - Bahasa Indonesia santai, natural, relatable (bukan bahasa iklan kaku).
 - Post pertama WAJIB hook kuat yang bikin orang berhenti scroll.
-- Setiap post maksimal 480 karakter (batas Threads).
+- Setiap post maksimal 450 karakter (batas Threads).
 - Sisipkan storytelling / value / edukasi sesuai gaya yang diminta, jangan langsung jualan.
 - Post TERAKHIR berisi call-to-action + link affiliate persis seperti ini: ${link || '[LINK]'}
 - Gunakan emoji secukupnya, jangan berlebihan.
@@ -72,7 +72,7 @@ export async function generateUtas(opts, env) {
 
   if (!apiKey) {
     return {
-      posts: applyDisclosure(generateTemplate(opts), opts.disclosure),
+      posts: applyDisclosure(enforceLimit(generateTemplate(opts)), opts.disclosure),
       hooks: generateHookVariations(opts, 3),
       source: 'template',
       warning: 'OPENROUTER_API_KEY belum diset — pakai template fallback.',
@@ -104,7 +104,7 @@ export async function generateUtas(opts, env) {
     const posts = Array.isArray(parsed?.posts) ? parsed.posts.filter((p) => typeof p === 'string' && p.trim()) : null;
     if (!posts || !posts.length) {
       return {
-        posts: applyDisclosure(generateTemplate(opts), opts.disclosure),
+        posts: applyDisclosure(enforceLimit(generateTemplate(opts)), opts.disclosure),
         hooks: generateHookVariations(opts, 3),
         source: 'template',
         warning: 'Respon AI tidak bisa diparse — pakai template fallback.',
@@ -113,10 +113,10 @@ export async function generateUtas(opts, env) {
     const hooks = Array.isArray(parsed?.hooks)
       ? parsed.hooks.filter((h) => typeof h === 'string' && h.trim())
       : generateHookVariations(opts, 2);
-    return { posts: applyDisclosure(posts, opts.disclosure), hooks, source: 'ai', model };
+    return { posts: applyDisclosure(enforceLimit(posts), opts.disclosure), hooks, source: 'ai', model };
   } catch (err) {
     return {
-      posts: applyDisclosure(generateTemplate(opts), opts.disclosure),
+      posts: applyDisclosure(enforceLimit(generateTemplate(opts)), opts.disclosure),
       hooks: generateHookVariations(opts, 3),
       source: 'template',
       warning: `AI gagal (${err.message}) — pakai template fallback.`,

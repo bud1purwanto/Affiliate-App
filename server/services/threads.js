@@ -1,6 +1,8 @@
 // Klien Threads API resmi (Meta) — opsional, untuk auto-post dari Web App.
 // Untuk Chrome Extension, posting dilakukan via DOM threads.com (tidak butuh ini).
 // Docs: https://developers.facebook.com/docs/threads
+import { enforceLimit } from './templates.js';
+
 const GRAPH = 'https://graph.threads.net/v1.0';
 
 export function hasThreadsCredentials() {
@@ -60,7 +62,8 @@ async function withRetry(fn, tries = 1) {
   throw lastErr;
 }
 
-export async function postThread(posts, topicTag) {
+export async function postThread(rawPosts, topicTag) {
+  const posts = enforceLimit(rawPosts); // jaga tiap post <= 500 karakter
   const ids = [];
   let replyToId = null;
   for (let i = 0; i < posts.length; i++) {

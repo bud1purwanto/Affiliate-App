@@ -1,4 +1,6 @@
 // Threads API resmi (Meta) untuk Cloudflare Functions.
+import { enforceLimit } from './templates.js';
+
 const GRAPH = 'https://graph.threads.net/v1.0';
 
 function creds(env) {
@@ -48,7 +50,8 @@ async function withRetry(fn, tries = 1) {
   throw lastErr;
 }
 
-export async function postThread(posts, topicTag, env) {
+export async function postThread(rawPosts, topicTag, env) {
+  const posts = enforceLimit(rawPosts); // jaga tiap post <= 500 karakter
   const ids = [];
   let replyToId = null;
   for (let i = 0; i < posts.length; i++) {

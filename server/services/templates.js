@@ -91,6 +91,38 @@ export function generateTemplate(opts) {
   return posts.map((p, i) => `${p}`.trim()).slice(0, Math.max(total, count));
 }
 
+const THREADS_LIMIT = 500;
+
+// Pecah teks > limit jadi beberapa bagian di batas kalimat/kata (bukan potong asal).
+export function splitToLimit(text, limit = THREADS_LIMIT) {
+  const t = (text || '').trim();
+  if (t.length <= limit) return [t];
+  const chunks = [];
+  let rem = t;
+  while (rem.length > limit) {
+    let cut = rem.lastIndexOf(' ', limit);
+    const sEnd = Math.max(
+      rem.lastIndexOf('. ', limit),
+      rem.lastIndexOf('! ', limit),
+      rem.lastIndexOf('? ', limit),
+      rem.lastIndexOf('\n', limit)
+    );
+    if (sEnd > limit * 0.6) cut = sEnd + 1;
+    else if (cut < limit * 0.5) cut = limit; // tidak ada spasi wajar -> potong keras
+    chunks.push(rem.slice(0, cut).trim());
+    rem = rem.slice(cut).trim();
+  }
+  if (rem) chunks.push(rem);
+  return chunks;
+}
+
+// Pastikan SEMUA post <= limit; yang kepanjangan dipecah jadi post tambahan.
+export function enforceLimit(posts, limit = THREADS_LIMIT) {
+  const out = [];
+  for (const p of posts) out.push(...splitToLimit(p, limit));
+  return out;
+}
+
 /** Hasilkan beberapa variasi hook (kalimat pembuka) untuk dipilih. */
 export function generateHookVariations(opts, n = 3) {
   const { keyword = 'produk ini', style = 'Storytelling', productName } = opts;
