@@ -74,6 +74,27 @@
         <input id="THREADS_USER_ID" type="text" placeholder="User ID" />
       </div>
 
+      <!-- Multi-akun Threads (disimpan di browser, untuk Auto post API) -->
+      <div class="panel" style="margin-bottom:16px;">
+        <h2>4. Akun Threads (multi-akun) <span class="pill on" id="pill-accounts">0</span></h2>
+        <p style="font-size:12px;color:#9a9a9a;margin:0 0 8px;">
+          Tambah beberapa akun Threads untuk <b>Auto post API</b>. Saat posting kamu bisa pilih akun mana.
+          Disimpan di <b>browser ini</b> (tidak dikirim/diset di Cloudflare), jadi tetap bisa dipakai walau mode Cloudflare.
+        </p>
+        <div id="accounts-list" class="acc-list"></div>
+        <label>Label akun (bebas)</label>
+        <input id="acc-label" type="text" placeholder="mis. Akun Masak" />
+        <label>Access Token</label>
+        <input id="acc-token" type="password" placeholder="Threads access token (long-lived)" />
+        <label>User ID</label>
+        <input id="acc-userid" type="text" placeholder="Threads user ID" />
+        <div class="row">
+          <button id="btn-acc-test" class="btn-secondary">🔌 Tes</button>
+          <button id="btn-acc-add" class="btn-primary">➕ Tambah Akun</button>
+        </div>
+        <div id="acc-out" class="out hidden"></div>
+      </div>
+
       <button id="btn-save" class="btn-primary full" style="margin-bottom:8px;">💾 Simpan Semua Credential</button>
       <div id="save-out" class="out hidden"></div>
       <p style="font-size:11px;color:#9a9a9a;text-align:center;margin-top:14px;">

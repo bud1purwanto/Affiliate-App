@@ -118,4 +118,101 @@ document.querySelectorAll('[data-test]').forEach((btn) => {
   });
 });
 
+// ================= Pengelola Akun Threads (multi-akun, localStorage) =================
+const ACCOUNTS_KEY = 'threadsmil_threads_accounts';
+function loadAccounts() {
+  try {
+    return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+function saveAccounts(list) {
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list));
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+function renderAccounts() {
+  const list = loadAccounts();
+  const wrap = $('accounts-list');
+  $('pill-accounts').textContent = list.length;
+  if (!list.length) {
+    wrap.innerHTML = '<div style="font-size:12px;color:#9a9a9a;padding:6px 0;">Belum ada akun. Tambahkan di bawah.</div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  list.forEach((a) => {
+    const div = document.createElement('div');
+    div.className = 'acc-item';
+    div.innerHTML = `<div><div class="acc-label">${escapeHtml(a.label)}</div>
+      <div class="acc-sub">${a.username ? '@' + escapeHtml(a.username) + ' · ' : ''}ID ${escapeHtml(a.userId)}</div></div>
+      <button class="btn-secondary acc-del" style="flex:0;">🗑</button>`;
+    div.querySelector('.acc-del').addEventListener('click', () => {
+      saveAccounts(loadAccounts().filter((x) => x.id !== a.id));
+      renderAccounts();
+    });
+    wrap.appendChild(div);
+  });
+}
+
+async function verifyAcc() {
+  const accessToken = $('acc-token').value.trim();
+  const userId = $('acc-userid').value.trim();
+  if (!accessToken || !userId) throw new Error('Isi Access Token & User ID dulu.');
+  const res = await fetch('/api/threads/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accessToken, userId }),
+  });
+  const data = await res.json();
+  if (!res.ok || data.ok === false) throw new Error(data.error || 'Akun tidak valid');
+  return data;
+}
+
+$('btn-acc-test').addEventListener('click', async () => {
+  const out = $('acc-out');
+  out.classList.remove('hidden');
+  out.textContent = 'Mengetes akun...';
+  try {
+    const d = await verifyAcc();
+    out.innerHTML = `✅ Valid — @${d.username || d.id}`;
+  } catch (e) {
+    out.textContent = '⚠ ' + e.message;
+  }
+});
+
+$('btn-acc-add').addEventListener('click', async () => {
+  const out = $('acc-out');
+  const label = $('acc-label').value.trim();
+  const token = $('acc-token').value.trim();
+  const userId = $('acc-userid').value.trim();
+  if (!label || !token || !userId) {
+    out.classList.remove('hidden');
+    out.textContent = '⚠ Isi label, token, dan user ID.';
+    return;
+  }
+  out.classList.remove('hidden');
+  out.textContent = 'Memverifikasi & menyimpan...';
+  let username = null;
+  try {
+    const d = await verifyAcc();
+    username = d.username;
+  } catch (e) {
+    if (!confirm('Akun gagal diverifikasi (' + e.message + '). Tetap simpan?')) {
+      out.textContent = '⚠ Dibatalkan.';
+      return;
+    }
+  }
+  const list = loadAccounts();
+  list.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2, 6), label, token, userId, username });
+  saveAccounts(list);
+  $('acc-label').value = '';
+  $('acc-token').value = '';
+  $('acc-userid').value = '';
+  out.innerHTML = `✅ Akun "${escapeHtml(label)}" tersimpan di browser ini.`;
+  renderAccounts();
+});
+
+renderAccounts();
 loadStatus();

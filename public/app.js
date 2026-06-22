@@ -33,7 +33,7 @@ async function init() {
       if (m.id === cfg.defaultModel) o.selected = true;
       modelSel.appendChild(o);
     });
-    $('btn-post-threads').textContent = cfg.threads ? '▶ Kirim ke Threads' : '▶ Kirim ke Threads (butuh extension)';
+    $('btn-post-threads').textContent = '▶ Kirim ke Threads';
   } catch (e) {
     console.error(e);
   }
@@ -472,27 +472,82 @@ $('send-modal').addEventListener('click', (e) => {
   if (e.target.id === 'send-modal') $('send-modal').classList.add('hidden');
 });
 
-// Opsi 1: Auto post via Threads API (fitur lama, tetap ada)
-$('modal-autopost').addEventListener('click', async () => {
+// Akun Threads tersimpan (multi-akun) — dikelola di /setup.html
+const ACCOUNTS_KEY = 'threadsmil_threads_accounts';
+function loadAccounts() {
+  try {
+    return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+// Opsi 1: Auto post via Threads API — pilih akun bila ada beberapa
+$('modal-autopost').addEventListener('click', () => {
   $('send-modal').classList.add('hidden');
-  if (!config.threads) {
-    return alert(
-      'Auto post dari Web App butuh Threads API resmi (set THREADS_ACCESS_TOKEN), ' +
-      'atau pakai Chrome Extension di desktop.\n\nDi HP, gunakan opsi "Buka di Threads".'
+  const accounts = loadAccounts();
+  if (accounts.length) {
+    showAccountPicker(accounts);
+  } else if (config.threads) {
+    doAutoPost(null); // pakai akun default dari server (env)
+  } else {
+    alert(
+      'Belum ada akun Threads. Tambahkan akun di halaman ⚙ Setup (bagian "Akun Threads"), ' +
+      'atau set Threads API di server.\n\nDi HP tanpa akun, gunakan opsi "Buka di Threads".'
     );
   }
+});
+
+function showAccountPicker(accounts) {
+  const list = $('account-list');
+  list.innerHTML = '';
+  accounts.forEach((a) => {
+    const btn = document.createElement('button');
+    btn.className = 'acc-pick';
+    btn.innerHTML = `<div class="ap-label">${a.label}</div><div class="ap-sub">${a.username ? '@' + a.username : 'ID ' + a.userId}</div>`;
+    btn.addEventListener('click', () => {
+      $('account-modal').classList.add('hidden');
+      doAutoPost(a);
+    });
+    list.appendChild(btn);
+  });
+  // opsi akun default server (kalau ada)
+  if (config.threads) {
+    const btn = document.createElement('button');
+    btn.className = 'acc-pick';
+    btn.innerHTML = `<div class="ap-label">Akun default server</div><div class="ap-sub">dari Threads API server</div>`;
+    btn.addEventListener('click', () => {
+      $('account-modal').classList.add('hidden');
+      doAutoPost(null);
+    });
+    list.appendChild(btn);
+  }
+  $('account-modal').classList.remove('hidden');
+}
+$('account-cancel').addEventListener('click', () => $('account-modal').classList.add('hidden'));
+$('account-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'account-modal') $('account-modal').classList.add('hidden');
+});
+
+async function doAutoPost(account) {
   const topicTag = $('topic').value.trim();
-  if (!confirm(`Auto post ${currentPosts.length} post ke Threads sekarang?`)) return;
-  showLoading(`Mengirim ${currentPosts.length} post ke Threads...\nIni bisa 10-20 detik, jangan tutup tab ini.`);
+  const nama = account ? `"${account.label}"` : 'akun server';
+  if (!confirm(`Auto post ${currentPosts.length} post ke Threads (${nama}) sekarang?`)) return;
+  showLoading(`Mengirim ${currentPosts.length} post ke Threads (${nama})...\nIni bisa 10-20 detik, jangan tutup tab ini.`);
   try {
-    const { count } = await api('/api/threads/post', { posts: currentPosts, topicTag });
-    alert(`✅ Berhasil posting ${count} post ke Threads!`);
+    const body = { posts: currentPosts, topicTag };
+    if (account) {
+      body.accessToken = account.token;
+      body.userId = account.userId;
+    }
+    const { count } = await api('/api/threads/post', body);
+    alert(`✅ Berhasil posting ${count} post ke Threads (${nama})!`);
   } catch (e) {
     alert('Gagal posting: ' + e.message);
   } finally {
     hideLoading();
   }
-});
+}
 
 // Opsi 2: Buka di Threads (intent) — app/web dengan Post 1 terisi
 $('modal-intent').addEventListener('click', () => {

@@ -143,6 +143,16 @@ label.checkbox input { width: auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
 #loading-text { font-size: 13px; color: var(--text); line-height: 1.5; white-space: pre-line; }
 
+/* ---- Pengelola akun Threads ---- */
+.acc-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.acc-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.acc-item .acc-label { font-weight: 600; font-size: 13px; }
+.acc-item .acc-sub { font-size: 11px; color: var(--muted); }
+.acc-pick { width: 100%; text-align: left; background: var(--panel-2); border: 1px solid var(--border); color: var(--text); margin-top: 8px; padding: 12px; }
+.acc-pick:hover { border-color: var(--accent); }
+.acc-pick .ap-label { font-weight: 600; }
+.acc-pick .ap-sub { font-size: 11px; color: var(--muted); }
+
 /* ===== Penyesuaian layar kecil / HP (Safari dll) ===== */
 @media (max-width: 560px) {
   .app { padding: 10px; }

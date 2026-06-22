@@ -3,32 +3,31 @@ import { enforceLimit } from './templates.js';
 
 const GRAPH = 'https://graph.threads.net/v1.0';
 
-function creds(env) {
-  const token = env.THREADS_ACCESS_TOKEN;
-  const userId = env.THREADS_USER_ID;
+// Ambil credential: utamakan override (akun yang dipilih dari UI), lalu env.
+function resolveCreds(env, override) {
+  const token = override?.accessToken || env.THREADS_ACCESS_TOKEN;
+  const userId = override?.userId || env.THREADS_USER_ID;
   if (!token || !userId) {
-    const err = new Error('THREADS_ACCESS_TOKEN / THREADS_USER_ID belum diset.');
+    const err = new Error('Akun Threads belum diset (token / user ID).');
     err.code = 'NO_THREADS_CREDENTIALS';
     throw err;
   }
   return { token, userId };
 }
 
-async function createContainer({ text, replyToId, topicTag }, env) {
-  const { token, userId } = creds(env);
-  const params = new URLSearchParams({ media_type: 'TEXT', text, access_token: token });
+async function createContainer({ text, replyToId, topicTag }, creds) {
+  const params = new URLSearchParams({ media_type: 'TEXT', text, access_token: creds.token });
   if (replyToId) params.set('reply_to_id', replyToId);
   if (topicTag) params.set('topic_tag', topicTag);
-  const res = await fetch(`${GRAPH}/${userId}/threads`, { method: 'POST', body: params });
+  const res = await fetch(`${GRAPH}/${creds.userId}/threads`, { method: 'POST', body: params });
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error?.message || 'Gagal membuat container Threads');
   return data.id;
 }
 
-async function publishContainer(creationId, env) {
-  const { token, userId } = creds(env);
-  const params = new URLSearchParams({ creation_id: creationId, access_token: token });
-  const res = await fetch(`${GRAPH}/${userId}/threads_publish`, { method: 'POST', body: params });
+async function publishContainer(creationId, creds) {
+  const params = new URLSearchParams({ creation_id: creationId, access_token: creds.token });
+  const res = await fetch(`${GRAPH}/${creds.userId}/threads_publish`, { method: 'POST', body: params });
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error?.message || 'Gagal publish Threads');
   return data.id;
@@ -50,19 +49,20 @@ async function withRetry(fn, tries = 1) {
   throw lastErr;
 }
 
-export async function postThread(rawPosts, topicTag, env) {
+// override = { accessToken, userId } untuk memilih akun tertentu (multi-akun).
+export async function postThread(rawPosts, topicTag, env, override) {
+  const creds = resolveCreds(env, override);
   const posts = enforceLimit(rawPosts); // jaga tiap post <= 500 karakter
   const ids = [];
   let replyToId = null;
   for (let i = 0; i < posts.length; i++) {
     const isReply = i > 0;
     try {
-      // post balasan: retry 3x karena post induk kadang belum siap dibalas
       const containerId = await withRetry(
-        () => createContainer({ text: posts[i], replyToId, topicTag: isReply ? undefined : topicTag }, env),
+        () => createContainer({ text: posts[i], replyToId, topicTag: isReply ? undefined : topicTag }, creds),
         isReply ? 3 : 1
       );
-      const publishedId = await withRetry(() => publishContainer(containerId, env), isReply ? 3 : 1);
+      const publishedId = await withRetry(() => publishContainer(containerId, creds), isReply ? 3 : 1);
       ids.push(publishedId);
       replyToId = publishedId;
     } catch (e) {
@@ -70,9 +70,16 @@ export async function postThread(rawPosts, topicTag, env) {
       err.posted = ids.length;
       throw err;
     }
-    // beri waktu post induk siap dibalas sebelum membuat post berikutnya
     if (i < posts.length - 1) await wait(3000);
   }
   return ids;
 }
 
+// Verifikasi akun (token + userId) -> kembalikan username.
+export async function verifyAccount(accessToken, userId) {
+  if (!accessToken || !userId) throw new Error('accessToken & userId wajib diisi.');
+  const res = await fetch(`${GRAPH}/${userId}?fields=id,username&access_token=${encodeURIComponent(accessToken)}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error?.message || `Akun tidak valid (HTTP ${res.status})`);
+  return { ok: true, id: data.id, username: data.username || null };
+}

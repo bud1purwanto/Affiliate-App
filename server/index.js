@@ -8,7 +8,7 @@ import QRCode from 'qrcode';
 
 import { generateUtas, RECOMMENDED_MODELS, testOpenRouter, repurpose } from './services/ai.js';
 import { generateShortLink, searchProducts, hasShopeeCredentials, testShopee, getConversionReport } from './services/shopee.js';
-import { postThread, hasThreadsCredentials } from './services/threads.js';
+import { postThread, hasThreadsCredentials, verifyAccount } from './services/threads.js';
 import { applyAndPersist, status as configStatus, checkSetupAuth, setupTokenRequired } from './services/config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -103,14 +103,25 @@ app.post('/api/qrcode', async (req, res) => {
   }
 });
 
+// ---- Threads: verifikasi akun (multi-akun) ----
+app.post('/api/threads/verify', async (req, res) => {
+  try {
+    const { accessToken, userId } = req.body || {};
+    res.json(await verifyAccount(accessToken, userId));
+  } catch (err) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
 // ---- Threads: posting via API resmi (opsional) ----
 app.post('/api/threads/post', async (req, res) => {
   try {
-    const { posts, topicTag } = req.body || {};
+    const { posts, topicTag, accessToken, userId } = req.body || {};
     if (!Array.isArray(posts) || posts.length === 0) {
       return res.status(400).json({ error: 'posts (array) wajib diisi.' });
     }
-    const ids = await postThread(posts, topicTag);
+    const override = accessToken && userId ? { accessToken, userId } : undefined;
+    const ids = await postThread(posts, topicTag, override);
     res.json({ ids, count: ids.length });
   } catch (err) {
     const status = err.code === 'NO_THREADS_CREDENTIALS' ? 400 : 502;
