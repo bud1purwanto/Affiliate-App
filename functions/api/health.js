@@ -8,7 +8,7 @@ export function onRequestGet({ env }) {
     shopee: Boolean(env.SHOPEE_APP_ID && env.SHOPEE_APP_SECRET),
     threads: Boolean(env.THREADS_ACCESS_TOKEN && env.THREADS_USER_ID),
     models: RECOMMENDED_MODELS,
-    defaultModel: env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
+    defaultModel: env.OPENROUTER_MODEL || 'openrouter/auto',
     platform: 'cloudflare',
   });
 }

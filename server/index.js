@@ -28,7 +28,7 @@ app.get('/api/health', (_req, res) => {
     shopee: hasShopeeCredentials(),
     threads: hasThreadsCredentials(),
     models: RECOMMENDED_MODELS,
-    defaultModel: process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
+    defaultModel: process.env.OPENROUTER_MODEL || 'openrouter/auto',
   });
 });
 

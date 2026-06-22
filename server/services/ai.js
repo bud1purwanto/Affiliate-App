@@ -68,7 +68,7 @@ function extractJson(text) {
  */
 export async function generateUtas(opts) {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = opts.model || process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet';
+  const model = opts.model || process.env.OPENROUTER_MODEL || 'openrouter/auto';
 
   if (!apiKey) {
     return {
@@ -197,7 +197,7 @@ Balas HANYA JSON valid: {"caption": "..."}`;
         'X-Title': process.env.OPENROUTER_TITLE || 'Threadsmil',
       },
       body: JSON.stringify({
-        model: opts.model || process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
+        model: opts.model || process.env.OPENROUTER_MODEL || 'openrouter/auto',
         temperature: 0.85,
         messages: [
           { role: 'system', content: 'Kamu copywriter sosial media yang membalas dalam JSON valid.' },
