@@ -30,14 +30,12 @@
       setter.call(el, text);
       el.dispatchEvent(new Event('input', { bubbles: true }));
     } else {
-      // contenteditable: seleksi seluruh isi, lalu execCommand insertText
-      // (execCommand sudah memicu event 'input' asli — JANGAN dispatch lagi
-      // agar editor tidak menyisipkan teks dua kali).
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      sel.addRange(range);
+      // contenteditable (editor Threads): kosongkan dulu lalu sisipkan.
+      // execCommand selectAll+delete membersihkan isi editor dgn benar,
+      // insertText memicu event 'input' asli (jangan dispatch manual lagi
+      // supaya teks tidak tergandakan).
+      document.execCommand('selectAll', false, null);
+      document.execCommand('delete', false, null);
       document.execCommand('insertText', false, text);
     }
   }
