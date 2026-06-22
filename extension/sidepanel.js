@@ -241,14 +241,37 @@ function renderHooks(hooks) {
   });
 }
 
-// ---- Kirim Semua ke Threads (chaining) ----
-$('btn-fill-all').addEventListener('click', () =>
+// ---- Kirim ke Threads: popup pilihan (auto post / buka di Threads) ----
+$('btn-fill-all').addEventListener('click', () => {
+  if (!currentPosts.length) return;
+  $('send-modal').classList.remove('hidden');
+});
+$('modal-cancel').addEventListener('click', () => $('send-modal').classList.add('hidden'));
+$('send-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'send-modal') $('send-modal').classList.add('hidden');
+});
+
+// Opsi 1: Auto post (isi otomatis via content script) — fitur lama
+$('modal-autopost').addEventListener('click', () => {
+  $('send-modal').classList.add('hidden');
   sendToThreads('THREADSMIL_FILL_ALL', {
     posts: currentPosts,
     topic: $('topic').value.trim(),
     media: currentPosts.map((_, i) => postImages[i] || []),
-  })
-);
+  });
+});
+
+// Opsi 2: Buka di Threads (intent) — Post 1 terisi, sisanya disalin
+$('modal-intent').addEventListener('click', () => {
+  $('send-modal').classList.add('hidden');
+  const first = currentPosts[0] || '';
+  chrome.tabs.create({ url: 'https://www.threads.net/intent/post?text=' + encodeURIComponent(first) });
+  if (currentPosts.length > 1) {
+    const rest = currentPosts.slice(1).join('\n\n———\n\n');
+    navigator.clipboard.writeText(rest).catch(() => {});
+    alert(`Post 1 dibuka di Threads. Post 2–${currentPosts.length} sudah disalin — tempel saat "Add to thread".`);
+  }
+});
 
 // ---- Kirim teks (+foto) ke tab Threads aktif ----
 async function fillToThreads(text, topic, images) {

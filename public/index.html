@@ -134,6 +134,18 @@
       </div>
     </section>
   </div>
+
+  <div id="send-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3>Kirim ke Threads</h3>
+      <p>Pilih cara mengirim UTAS ini:</p>
+      <button id="modal-autopost" class="btn-primary full">🤖 Auto post (otomatis)</button>
+      <button id="modal-intent" class="btn-secondary full">📱 Buka di Threads (app/web)</button>
+      <button id="modal-cancel" class="btn-secondary full">Batal</button>
+      <p class="mnote">Auto post = langsung terkirim (butuh Threads API). Buka di Threads = membuka app/web dengan Post 1 sudah terisi (cocok untuk HP), sisanya tinggal tempel.</p>
+    </div>
+  </div>
+
   <script src="vendor/qrcode.bundle.js"></script>
   <script src="app.js"></script>
 </body>

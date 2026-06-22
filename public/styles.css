@@ -126,3 +126,12 @@ label.checkbox input { width: auto; }
 .repurpose-out { margin-top: 10px; }
 .repurpose-out textarea { width: 100%; min-height: 140px; background: var(--panel-2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px; font-size: 13px; line-height: 1.5; font-family: inherit; resize: vertical; }
 .repurpose-out button { margin-top: 8px; }
+
+/* ---- Modal pilihan kirim ---- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.modal-overlay.hidden { display: none; }
+.modal { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; width: 360px; max-width: 100%; }
+.modal h3 { margin: 0 0 6px; font-size: 17px; }
+.modal p { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.modal button { margin-top: 8px; }
+.modal .mnote { margin-top: 14px; margin-bottom: 0; font-size: 11px; line-height: 1.5; }

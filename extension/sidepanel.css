@@ -68,3 +68,10 @@ label.checkbox input { width: auto; }
 .hook-opt { background: var(--panel-2); border: 1px solid var(--border); border-radius: 7px; padding: 7px; font-size: 12px; margin-bottom: 5px; cursor: pointer; line-height: 1.4; }
 .hook-opt:hover { border-color: var(--accent); }
 .hook-opt.active { border-color: var(--accent); background: rgba(124,58,237,.18); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 14px; }
+.modal-overlay.hidden { display: none; }
+.modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; width: 100%; }
+.modal .mtitle { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.modal button { margin-top: 8px; }
+.modal .mnote { margin-top: 12px; font-size: 10px; color: var(--muted); line-height: 1.5; }

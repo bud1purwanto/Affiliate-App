@@ -451,16 +451,27 @@ $('btn-copy-all').addEventListener('click', () => {
   setTimeout(() => ($('btn-copy-all').textContent = '📋 Salin Semua'), 1500);
 });
 
-// ---- Kirim ke Threads ----
-$('btn-post-threads').addEventListener('click', async () => {
+// ---- Kirim ke Threads: tampilkan popup pilihan ----
+$('btn-post-threads').addEventListener('click', () => {
+  if (!currentPosts.length) return;
+  $('send-modal').classList.remove('hidden');
+});
+$('modal-cancel').addEventListener('click', () => $('send-modal').classList.add('hidden'));
+$('send-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'send-modal') $('send-modal').classList.add('hidden');
+});
+
+// Opsi 1: Auto post via Threads API (fitur lama, tetap ada)
+$('modal-autopost').addEventListener('click', async () => {
+  $('send-modal').classList.add('hidden');
   if (!config.threads) {
     return alert(
-      'Posting otomatis dari Web App butuh Threads API resmi (set THREADS_ACCESS_TOKEN).\n\n' +
-      'Cara paling praktis: pakai Chrome Extension Threadsmil yang bisa "Isi ke Threads" langsung di threads.com.'
+      'Auto post dari Web App butuh Threads API resmi (set THREADS_ACCESS_TOKEN), ' +
+      'atau pakai Chrome Extension di desktop.\n\nDi HP, gunakan opsi "Buka di Threads".'
     );
   }
   const topicTag = $('topic').value.trim();
-  if (!confirm(`Kirim ${currentPosts.length} post ke Threads sekarang?`)) return;
+  if (!confirm(`Auto post ${currentPosts.length} post ke Threads sekarang?`)) return;
   try {
     const { count } = await api('/api/threads/post', { posts: currentPosts, topicTag });
     alert(`✅ Berhasil posting ${count} post ke Threads!`);
@@ -468,6 +479,25 @@ $('btn-post-threads').addEventListener('click', async () => {
     alert('Gagal posting: ' + e.message);
   }
 });
+
+// Opsi 2: Buka di Threads (intent) — app/web dengan Post 1 terisi
+$('modal-intent').addEventListener('click', () => {
+  $('send-modal').classList.add('hidden');
+  openInThreads();
+});
+
+function openInThreads() {
+  const first = currentPosts[0] || '';
+  window.open('https://www.threads.net/intent/post?text=' + encodeURIComponent(first), '_blank');
+  if (currentPosts.length > 1) {
+    const rest = currentPosts.slice(1).join('\n\n———\n\n');
+    navigator.clipboard.writeText(rest).catch(() => {});
+    alert(
+      `Post 1 dibuka di Threads (app/web).\n\nPost 2–${currentPosts.length} sudah DISALIN ke clipboard — ` +
+      `tempel satu per satu saat "Add to thread".`
+    );
+  }
+}
 
 init();
 renderHistory();
